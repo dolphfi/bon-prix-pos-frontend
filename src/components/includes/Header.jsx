@@ -71,12 +71,12 @@ const Header = () => {
         }`}
       >
         <div className="py-4 text-gray-500 dark:text-gray-400">
-          <a
+          <Link
             className="ml-6 text-lg font-bold text-gray-800 dark:text-gray-200"
-            href="#"
+            to="/dashboard"
           >
             Bon Prix
-          </a>
+          </Link>
           <ul className="mt-6">
             <li className="relative px-6 py-3">
               <span
@@ -158,11 +158,6 @@ const Header = () => {
                       <i className="fas fa-user" />
                       <span className="ml-4">Users</span>
                     </Link>
-                  </li>
-                  <li className="px-2 py-1 transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200">
-                    <a className="w-full" href="pages/create-account.html">
-                      Create account
-                    </a>
                   </li>
                 </ul>
               </CSSTransition>
@@ -308,52 +303,29 @@ const Header = () => {
                 aria-label="Account"
                 aria-haspopup="true"
               >
-                <img
-                  className="object-cover w-full h-full"
-                  src="https://cdn.tuk.dev/assets/templates/saaspro/members/19.png"
-                  alt="user"
-                />
+                <i className="fas fa-user" />
               </button>
 
               {profileMenuOpen && (
                 <ul className="absolute right-0 w-56 p-2 mt-2 space-y-2 text-gray-600 bg-white border border-gray-100 rounded-md shadow-md dark:text-gray-300 dark:border-gray-700 dark:bg-gray-700">
                   <li className="flex">
-                    <a
+                    <Link
                       className="inline-flex items-center w-full px-2 py-1 text-sm font-semibold transition-colors duration-150 rounded-md hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                      href="#"
+                      to="/"
                     >
-                      <svg
-                        className="w-4 h-4 mr-3"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M9 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                          clipRule="evenodd"
-                        ></path>
-                      </svg>
-                      Profile
-                    </a>
+                      <i className="fas fa-user" />
+
+                      <span className="ml-4">Profile</span>
+                    </Link>
                   </li>
                   <li className="flex">
-                    <a
+                    <Link
                       className="inline-flex items-center w-full px-2 py-1 text-sm font-semibold transition-colors duration-150 rounded-md hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                      href="#"
+                      to="/"
                     >
-                      <svg
-                        className="w-4 h-4 mr-3"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 3a7 7 0 11-7 7 7 7 0 017-7zm0 14a5 5 0 00-5-5 5 5 0 005 5zm0 1c-3.042 0-6-2.06-6-6 0-1.49.517-2.885 1.47-3.966.535-.736.978-1.532 1.447-2.343a4.978 4.978 0 01.495-.676 8.037 8.037 0 001.538-.873 5.965 5.965 0 013.252-.795C12.62 6.248 14 7.887 14 9.75c0 3.42-2.637 5.993-4 6.205z"
-                          clipRule="evenodd"
-                        ></path>
-                      </svg>
-                      Logout
-                    </a>
+                      <i className="ri-logout-circle-line" />
+                      <span className="ml-4">Logout</span>
+                    </Link>
                   </li>
                 </ul>
               )}

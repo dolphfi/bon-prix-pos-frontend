@@ -14,12 +14,12 @@ const Sidebar = () => {
       {/* <!-- Desktop sidebar --> */}
       <aside className="z-20 hidden w-64 overflow-y-auto bg-white dark:bg-gray-800 md:block flex-shrink-0">
         <div className="py-4 text-gray-500 dark:text-gray-400">
-          <a
+          <Link
             className="ml-6 text-lg font-bold text-gray-800 dark:text-gray-200"
-            href="#"
+            to="/"
           >
             Bon Prix
-          </a>
+          </Link>
           <ul className="mt-6">
             <li className="relative px-6 py-3">
               <span
@@ -101,11 +101,6 @@ const Sidebar = () => {
                       <i className="fas fa-user" />
                       <span className="ml-4">Users</span>
                     </Link>
-                  </li>
-                  <li className="px-2 py-1 transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200">
-                    <a className="w-full" href="pages/create-account.html">
-                      Create account
-                    </a>
                   </li>
                 </ul>
               </CSSTransition>
