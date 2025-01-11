@@ -41,11 +41,13 @@ const Login = () => {
               {/* md:flex-row */}
               <div className="flex p-6 sm:p-12">
                 <div className="w-full">
-                  <img
-                    className="object-cover w-56 h-auto logo"
-                    src="../assets/img/bon.png"
-                    alt="Logo"
-                  />
+                  <div className="flex items-center justify-center mt-1">
+                    <img
+                      className="object-cover w-56 h-auto"
+                      src="../assets/img/bon.png"
+                      alt="Logo"
+                    />
+                  </div>
                   <label className="block text-sm">
                     <span className="text-gray-700 dark:text-gray-400">
                       Email
@@ -71,17 +73,14 @@ const Login = () => {
                   >
                     Log in
                   </RouterLink>
-
-                  <hr className="my-8" />
-
-                  <p className="mt-4 mleft mtop">
+                  <div className="flex items-end justify-end mt-1">
                     <RouterLink
                       className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline"
                       to="/forgot_password"
                     >
                       Forgot your password?{" "}
                     </RouterLink>
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>

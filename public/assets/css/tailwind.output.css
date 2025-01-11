@@ -9,9 +9,7 @@ body {
 main {
   display: block;
 }
-.logo{
-  margin-left: 7.5rem;
-}
+
 /* Loader.css */
 .loader-containerh {
   display: flex;
@@ -1061,12 +1059,7 @@ video {
 .mt-16 {
   margin-top: 4rem;
 }
-.mleft{
-  margin-left: 20rem;
-}
-.mtop{
-  margin-top: -2rem;
-}
+
 .-mr-1 {
   margin-right: -0.25rem;
 }
