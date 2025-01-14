@@ -8,6 +8,7 @@ import Carts from '../pages/others/Carts';
 import Reports from '../pages/others/Reports';
 import Sales from '../pages/others/Sales';
 import Users from '../pages/others/Users';
+import NotFound from '../errors/NotFound';
 
 function AppRoutes() {
     return (
@@ -22,6 +23,11 @@ function AppRoutes() {
                     <Route path='/reports' element={<Reports />} />
                     <Route path='/sales' element={<Sales />} />
                     <Route path='/users' element={<Users />} />
+                    {/* Route 404 */}
+                    <Route
+                        path="*"
+                        component={NotFound}
+                    />
                 </Routes>
             </BrowserRouter>
         </>

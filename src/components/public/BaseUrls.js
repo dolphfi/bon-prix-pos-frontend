@@ -1,0 +1,6 @@
+const UrlAuth = '';
+
+
+export {
+    UrlAuth
+}
