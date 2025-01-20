@@ -1,209 +1,110 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../includes/Header";
 import Sidebar from "../../includes/Sidebar";
+import UserData from "../../data/UserData";
+import { UsersForm } from "../../Jobs/Form";
 
-const tableData = [
-  {
-    client: "Hans Burger",
-    amount: "$863.45",
-    status: "Approved",
-    date: "6/10/2020",
-  },
-  {
-    client: "Jolina Angelie",
-    amount: "$369.95",
-    status: "Pending",
-    date: "6/10/2020",
-  },
-  {
-    client: "Sarah Curry",
-    amount: "$86.00",
-    status: "Denied",
-    date: "6/10/2020",
-  },
-  {
-    client: "Rulia Joberts",
-    amount: "$1276.45",
-    status: "Approved",
-    date: "6/10/2020",
-  },
-  {
-    client: "Wenzel Dashington",
-    amount: "$863.45",
-    status: "Expired",
-    date: "6/10/2020",
-  },
-  {
-    client: "Fidele Burger",
-    amount: "$863.45",
-    status: "Approved",
-    date: "6/10/2020",
-  },
-  // Ajoute plus de données si nécessaire
-];
 const Users = () => {
-  const isSideMenuOpen = true; // Exemple de valeur dynamique
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Nombre d'éléments par page
+  const [isModalOpen, setModalOpen] = useState(false); // État pour le modal
+  const isSideMenuOpen = true;
 
-  // Calculer les indices de début et de fin
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = tableData.slice(indexOfFirstItem, indexOfLastItem);
+  useEffect(() => {
+    document.title = "Bon Prix | Users";
+  }, []);
 
-  const totalPages = Math.ceil(tableData.length / itemsPerPage);
-
-  /**
-   * @param {number} page
-   */
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
 
   return (
-    <div
-      className={`flex h-screen bg-gray-50 dark:bg-gray-900 ${
-        isSideMenuOpen ? "overflow-hidden" : ""
-      }`}
-    >
-      <Sidebar />
-      <div className="flex flex-col flex-1 w-full">
-        <Header />
+    <>
+      <div
+        className={`flex h-screen bg-gray-50 dark:bg-gray-900 ${
+          isSideMenuOpen ? "overflow-hidden" : ""
+        }`}
+      >
+        <Sidebar />
+        <div className="flex flex-col flex-1 w-full">
+          <Header />
 
-        {/* Users start*/}
-        <main className="h-full overflow-y-auto">
-          <div className="container px-6 mx-auto grid">
-            <h2 className="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">
-              Users
-            </h2>
-            {/* <!-- Cards --> */}
-            <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4"></div>
-            {/* <!-- New Table --> */}
-            <div className="w-full overflow-hidden rounded-lg shadow-xs">
-              <div className="w-full overflow-x-auto">
-                <table className="w-full whitespace-no-wrap">
-                  <thead>
-                    <tr className="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
-                      <th className="px-4 py-3">Client</th>
-                      <th className="px-4 py-3">Amount</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
-                    {currentItems.map((item, index) => (
-                      <tr
-                        key={index}
-                        className="text-gray-700 dark:text-gray-400"
-                      >
-                        <td className="px-4 py-3">
-                          <div className="flex items-center text-sm">
-                            <div className="relative hidden w-8 h-8 mr-3 rounded-full md:block">
-                              <img
-                                className="object-cover w-full h-full rounded-full"
-                                src="https://images.unsplash.com/flagged/photo-1570612861542-284f4c12e75f?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=200&fit=max&ixid=eyJhcHBfaWQiOjE3Nzg0fQ"
-                                alt=""
-                                loading="lazy"
-                              />
-                            </div>
-                            <div>
-                              <p className="font-semibold">{item.client}</p>
-                              <p className="text-xs text-gray-600 dark:text-gray-400">
-                                10x Developer
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm">{item.amount}</td>
-                        <td className="px-4 py-3 text-xs">
-                          <span className="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">
-                            {item.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm">{item.date}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                <div className="grid px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t dark:border-gray-700 bg-gray-50 sm:grid-cols-9 dark:text-gray-400 dark:bg-gray-800">
-                  <span className="flex items-center col-span-3">
-                    Showing {indexOfFirstItem + 1}-{indexOfLastItem} of{" "}
-                    {tableData.length}
-                  </span>
-                  <span className="col-span-2"></span>
-                  <span className="flex col-span-4 mt-2 sm:mt-auto sm:justify-end">
-                    <nav aria-label="Table navigation">
-                      <ul className="inline-flex items-center">
-                        <li>
-                          <button
-                            className="px-3 py-1 rounded-md rounded-l-lg focus:outline-none focus:shadow-outline-purple"
-                            aria-label="Previous"
-                            onClick={() =>
-                              currentPage > 1 &&
-                              handlePageChange(currentPage - 1)
-                            }
-                          >
-                            <svg
-                              aria-hidden="true"
-                              className="w-4 h-4 fill-current"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                                clip-rule="evenodd"
-                                fill-rule="evenodd"
-                              ></path>
-                            </svg>
-                          </button>
-                        </li>
-                        {[...Array(totalPages)].map((_, index) => (
-                          <li key={index}>
-                            <button
-                              className={`px-3 py-1 rounded-md ${
-                                currentPage === index + 1
-                                  ? "bg-purple-600 text-white"
-                                  : ""
-                              }`}
-                              onClick={() => handlePageChange(index + 1)}
-                            >
-                              {index + 1}
-                            </button>
-                          </li>
-                        ))}
-                        <li>
-                          <button
-                            className="px-3 py-1 rounded-md rounded-r-lg focus:outline-none focus:shadow-outline-purple"
-                            aria-label="Next"
-                            onClick={() =>
-                              currentPage < totalPages &&
-                              handlePageChange(currentPage + 1)
-                            }
-                          >
-                            <svg
-                              className="w-4 h-4 fill-current"
-                              aria-hidden="true"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clip-rule="evenodd"
-                                fill-rule="evenodd"
-                              ></path>
-                            </svg>
-                          </button>
-                        </li>
-                      </ul>
-                    </nav>
-                  </span>
-                </div>
+          <main className="h-full overflow-y-auto">
+            <div className="container px-6 mx-auto grid">
+              <h2 className="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">
+                Users
+              </h2>
+              <div className="flex justify-end items-end">
+                {/* Bouton pour ouvrir le modal */}
+                <button
+                  onClick={openModal}
+                  className="px-3 py-1 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-md active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
+                >
+                  <i className="ri-user-add-line" />
+                </button>
               </div>
+
+              {/* données utilisateur */}
+              <UserData />
             </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
-      {/* Ajoutez ici vos éléments enfants */}
-    </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div
+          onClick={closeModal} // Fermer le modal en cliquant sur l'arrière-plan
+          className="fixed inset-0 z-30 flex items-end bg-black bg-opacity-50 sm:items-center sm:justify-center"
+        >
+          {/* Contenu du modal */}
+          <div
+            onClick={(e) => e.stopPropagation()} // Empêche la fermeture en cliquant à l'intérieur du modal
+            className="w-full px-6 py-4 overflow-hidden bg-white rounded-t-lg dark:bg-gray-800 sm:rounded-lg sm:m-4 sm:max-w-xl"
+          >
+            {/* En-tête du modal */}
+            <header className="flex justify-end">
+              <button
+                onClick={closeModal}
+                className="inline-flex items-center justify-center w-6 h-6 text-gray-400 transition-colors duration-150 rounded dark:hover:text-gray-200 hover:text-gray-700"
+                aria-label="close"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  role="img"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                    fillRule="evenodd"
+                  ></path>
+                </svg>
+              </button>
+            </header>
+
+            {/* Corps du modal */}
+            <div className="mt-4 mb-6">
+              <p className="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-300">
+                Add a new user
+              </p>
+              {/* <p className="text-sm text-gray-700 dark:text-gray-400">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                Nostrum et eligendi repudiandae voluptatem tempore!
+              </p> */}
+              <UsersForm closeModal={closeModal} />
+            </div>
+
+            {/* Pied de page du modal */}
+            {/* <footer className="flex flex-col items-center justify-end px-6 py-3 -mx-6 -mb-4 space-y-4 sm:space-y-0 sm:space-x-6 sm:flex-row bg-gray-50 dark:bg-gray-800">
+              <button className="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple">
+                <span>Save</span>
+                <i className="ri-save-line w-4 h-4 ml-2 -mr-1" />
+              </button>
+            </footer> */}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

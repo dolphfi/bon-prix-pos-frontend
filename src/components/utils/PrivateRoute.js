@@ -1,12 +1,17 @@
-// import { Route, Redirect } from 'react-router-dom';
-// // import {useContext} from 'react';
-// // import AuthContext from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
+import { useContext } from 'react';
+import Auth from '../context/AuthContext';
 
-// const PrivateRoute = ({ children, ...rest }) => {
-//     // let {user} = useContext(AuthContext)
-//     return <Route {...rest}>
-//         {/* {!user ? <Redirect to="/" /> : children} */}
-//     </Route>
-// }
+const PrivateRoute = ({ children }) => {
+    const { user } = useContext(Auth);
 
-// export default PrivateRoute
+    // Si l'utilisateur n'est pas authentifié, redirige vers la page de connexion
+    if (!user) {
+        return <Navigate to="/" replace />;
+    }
+
+    // Si l'utilisateur est authentifié, affiche les enfants (la route privée)
+    return children;
+}
+
+export default PrivateRoute;

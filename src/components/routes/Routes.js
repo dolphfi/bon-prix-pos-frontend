@@ -1,6 +1,5 @@
-import React from 'react'
-// import PrivateRoute from "../utils/PrivateRoute";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Dashboard from '../pages/Dashboard';
 import Login from '../auth/Login';
 import Products from '../pages/others/Products';
@@ -9,29 +8,70 @@ import Reports from '../pages/others/Reports';
 import Sales from '../pages/others/Sales';
 import Users from '../pages/others/Users';
 import NotFound from '../errors/NotFound';
+import { AuthProvider } from '../context/AuthContext';
+import PrivateRoute from '../utils/PrivateRoute';
+import UserDetails from '../pages/others/UserDetails';
+import { ForgotPassword } from '../auth/ForgotPassword';
+import { ResetPassword } from '../auth/ResetPassword';
+import Profile from '../auth/Profile';
 
 function AppRoutes() {
     return (
-        <>
-            <BrowserRouter>
+        <BrowserRouter>
+            <AuthProvider>
                 <Routes>
-                    {/* Vous pouvez définir vos routes ici */}
+                    {/* Route publique */}
                     <Route path='/' element={<Login />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/products" element={<Products />} />
-                    <Route path='/carts' element={<Carts />} />
-                    <Route path='/reports' element={<Reports />} />
-                    <Route path='/sales' element={<Sales />} />
-                    <Route path='/users' element={<Users />} />
-                    {/* Route 404 */}
-                    <Route
-                        path="*"
-                        component={NotFound}
+                    <Route path='/forgot_password' element={<ForgotPassword />} />
+                    <Route path='/reset_password' element={<ResetPassword />} />
+
+                    {/* Route privée */}
+                    <Route path="/dashboard" element={
+                        <PrivateRoute>
+                            <Dashboard />
+                        </PrivateRoute>
+                    }
                     />
+                    <Route path="/products" element={
+                        <PrivateRoute>
+                            <Products />
+                        </PrivateRoute>
+                    }
+                    />
+                    <Route path="/carts" element={
+                        <PrivateRoute>
+                            <Carts />
+                        </PrivateRoute>
+                    }
+                    />
+                    <Route path='/reports' element={
+                        <PrivateRoute>
+                            <Reports />
+                        </PrivateRoute>
+                    } />
+                    <Route path='/Sales' element={
+                        <PrivateRoute>
+                            <Sales />
+                        </PrivateRoute>
+                    } />
+                    <Route path='/Users' element={
+                        <PrivateRoute>
+                            <Users />
+                        </PrivateRoute>
+                    } />
+                    <Route path='/detail-user/:id' element={<PrivateRoute>
+                        <UserDetails />
+                    </PrivateRoute>} />
+                    <Route path='/profile' element={<PrivateRoute>
+                        <Profile />
+                    </PrivateRoute>} />
+
+
+                    {/* Route pour la page non trouvée */}
+                    <Route path='*' element={<NotFound />} />
                 </Routes>
-            </BrowserRouter>
-        </>
+            </AuthProvider>
+        </BrowserRouter>
     )
 }
-
-export default AppRoutes
+export default AppRoutes;  // Exporter la fonction AppRoutes

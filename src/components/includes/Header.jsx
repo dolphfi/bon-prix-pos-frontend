@@ -1,14 +1,18 @@
 // eslint-disable-next-line
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
+import Auth from "../context/AuthContext";
+import { UrlPhoto } from "../public/BaseUrls";
 
 const Header = () => {
+  const { logoutUser, getUserPhotoFromLocalStorage } = useContext(Auth);
   const [isPagesMenuOpen, setIsPagesMenuOpen] = useState(false);
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  // const [notificationsMenuOpen, setNotificationsMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  // const [notificationsMenuOpen, setNotificationsMenuOpen] = useState(false);
+  const baseUrlPhoto = UrlPhoto;
 
   const togglePagesMenu = () => {
     setIsPagesMenuOpen(!isPagesMenuOpen);
@@ -53,6 +57,8 @@ const Header = () => {
   const toggleProfileMenu = () => {
     setProfileMenuOpen(!profileMenuOpen);
   };
+
+  const imageUserlogin = getUserPhotoFromLocalStorage();
 
   return (
     <>
@@ -303,7 +309,12 @@ const Header = () => {
                 aria-label="Account"
                 aria-haspopup="true"
               >
-                <i className="fas fa-user" />
+                <img
+                  className="object-cover w-8 h-8 rounded-full"
+                  src={`${baseUrlPhoto}${imageUserlogin}`}
+                  alt=""
+                  loading="lazy"
+                />
               </button>
 
               {profileMenuOpen && (
@@ -311,7 +322,7 @@ const Header = () => {
                   <li className="flex">
                     <Link
                       className="inline-flex items-center w-full px-2 py-1 text-sm font-semibold transition-colors duration-150 rounded-md hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                      to="/"
+                      to="/profile"
                     >
                       <i className="fas fa-user" />
 
@@ -321,7 +332,7 @@ const Header = () => {
                   <li className="flex">
                     <Link
                       className="inline-flex items-center w-full px-2 py-1 text-sm font-semibold transition-colors duration-150 rounded-md hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                      to="/"
+                      onClick={logoutUser}
                     >
                       <i className="ri-logout-circle-line" />
                       <span className="ml-4">Logout</span>
