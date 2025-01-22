@@ -1,6 +1,8 @@
+/*eslint-disable*/
 import React, { useState } from "react";
-import Header from "../../includes/Header";
-import Sidebar from "../../includes/Sidebar";
+import Sidebar from "../../../includes/Sidebar";
+import Header from "../../../includes/Header";
+import Footer from "../../../includes/Footer";
 
 const tableData = [
   {
@@ -201,6 +203,7 @@ const Sales = () => {
             </div>
           </div>
         </main>
+        <Footer />
       </div>
       {/* Ajoutez ici vos éléments enfants */}
     </div>

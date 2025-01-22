@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Auth from "../context/AuthContext";
-import { Bounce, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 export const ResetPassword = () => {
   const { resetPassword } = useContext(Auth);
@@ -67,10 +67,10 @@ export const ResetPassword = () => {
     setLoading(true);
     try {
       await resetPassword(token, formData.password);
-      toast.success("Mot de passe réinitialisé avec succès", {
-        position: "top-right",
-        autoClose: 5000,
-      });
+      // toast.success("Mot de passe réinitialisé avec succès", {
+      //   position: "top-right",
+      //   autoClose: 5000,
+      // });
     } catch (error) {
       toast.error("Erreur lors de la réinitialisation du mot de passe", {
         position: "top-right",

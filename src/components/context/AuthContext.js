@@ -1,3 +1,4 @@
+/*eslint-disable*/
 import { createContext, useState, useEffect, useCallback } from "react";
 import { Bounce, toast } from 'react-toastify';
 import { UrlAuth, UrlUsers } from "../public/BaseUrls";
@@ -183,24 +184,6 @@ export const AuthProvider = ({ children }) => {
         });
     }, [setAuthTokens, setUser]);
 
-    // user email from local storage
-    const getUserEmailFromLocalStorage = () => {
-        const authTokens = JSON.parse(localStorage.getItem("authTokens"));
-        if (authTokens && authTokens.user) {
-            return authTokens.user.email;
-        }
-        return null;
-    };
-
-    // username from local storage
-    const getUsernameFromLocalStorage = () => {
-        const authTokens = JSON.parse(localStorage.getItem("authTokens"));
-        if (authTokens && authTokens.user) {
-            return authTokens.user.username;
-        }
-        return null;
-    };
-
     //user photo from local storage
     const getUserPhotoFromLocalStorage = () => {
         const authTokens = JSON.parse(localStorage.getItem('authTokens'));
@@ -289,8 +272,8 @@ export const AuthProvider = ({ children }) => {
                     transition: Bounce,
                 });
             }
-            const data = await response.json();
-            console.log('Utilisateur activé/désactivé avec succès:', data);
+            // const data = await response.json();
+            // console.log('Utilisateur activé/désactivé avec succès:', data);
         } catch (err) {
             toast.error('Une erreur est survenue. Impossible de modifier l\'activation de l\'utilisateur.', {
                 position: "top-right",
@@ -323,7 +306,7 @@ export const AuthProvider = ({ children }) => {
             }
 
             const data = await response.json();
-            console.log("Détails de l'utilisateur :", data);
+            // console.log("Détails de l'utilisateur :", data);
             return data;
         } catch (error) {
             toast.error("Erreur lors de la récupération des détails.");
@@ -346,7 +329,7 @@ export const AuthProvider = ({ children }) => {
             }
 
             const data = await response.json();
-            console.log("Rôle de l'utilisateur mis à jour avec succès :", data);
+            // console.log("Rôle de l'utilisateur mis à jour avec succès :", data);
             return data;
         } catch (error) {
             toast.error("Erreur lors de la mise à jour du rôle.");
@@ -369,8 +352,8 @@ export const AuthProvider = ({ children }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("Mot de passe oublié envoyé avec succès :", data);
-                toast.success("Un email vous a été envoyé pour réinitialiser votre mot de passe.", {
+                // console.log("Mot de passe oublié envoyé avec succès :", data);
+                toast.success(data, {
                     position: "top-right",
                     autoClose: 5000,
                     hideProgressBar: false,
@@ -391,7 +374,6 @@ export const AuthProvider = ({ children }) => {
     };
 
     const resetPassword = async (token, newPassword) => {
-
         try {
             const response = await fetch(`${baseUrl}reset-password`, {
                 method: "POST",
@@ -403,14 +385,64 @@ export const AuthProvider = ({ children }) => {
 
             const data = await response.json();
             if (response.ok) {
-                toast.success("Mot de passe réinitialisé avec succès.");
-                console.log("Mot de passe réinitialisé avec succès :", data);
+                toast.success(data);
+                // console.log("Mot de passe réinitialisé avec succès :", data);
                 navigate('/')
             } else {
                 toast.error(data.message || "Erreur lors de la réinitialisation.");
             }
         } catch (error) {
             toast.error('Une erreur est survenue lors de la réinitialisation.');
+        } finally {
+            setloading(false);
+        }
+    };
+
+    const Profile = async () => {
+        setloading(true);
+        try {
+            const response = await fetchWithAuth(`${baseUrl}profile`, {
+                method: 'GET',
+            });
+
+            if (!response.ok) {
+                toast.error("Erreur : Impossible de récupérer les détails de l'utilisateur.");
+                return null;
+            }
+
+            const data = await response.json();
+            // console.log("Détails de l'utilisateur Profile:", data);
+            setUser(data);
+        } catch (error) {
+            // toast.error("Erreur lors de la récupération des détails.");
+            console.error("Erreur :", error);
+        } finally {
+            setloading(false);
+        }
+
+    };
+
+    useEffect(() => {
+        Profile(); // Charger le profil lors du montage
+    }, []);
+
+    const updateProfile = async (formData) => {
+        try {
+            const response = await fetchWithAuth(`${baseUrl}update-profile`, {
+                method: 'PUT',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                toast.error("Erreur : Impossible de mettre à jour le profil.");
+                return null;
+            }
+            const data = await response.json();
+            // console.log("Profil mis à jour avec succès :", data);
+            return data;
+        } catch (error) {
+            toast.error("Erreur lors de la mise à jour du profil.");
+            console.error("Erreur :", error);
         } finally {
             setloading(false);
         }
@@ -562,7 +594,7 @@ export const AuthProvider = ({ children }) => {
 
 
 
-    const contextData = { user, setUser, authTokens, setAuthTokens, loading, isOnline, login, logoutUser, getUserEmailFromLocalStorage, getUsernameFromLocalStorage, getUserPhotoFromLocalStorage, registerUser, getAllUsers, toggleUserActivation, fetchWithAuth, getUserDetails, updateRole, forgortPassword, resetPassword };
+    const contextData = { user, setUser, authTokens, setAuthTokens, loading, isOnline, login, logoutUser, getUserPhotoFromLocalStorage, registerUser, getAllUsers, toggleUserActivation, fetchWithAuth, getUserDetails, updateRole, forgortPassword, resetPassword, Profile, updateProfile, };
 
     return (
         <Auth.Provider value={contextData}>

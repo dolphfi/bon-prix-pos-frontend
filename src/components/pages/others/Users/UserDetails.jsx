@@ -1,10 +1,12 @@
+/*eslint-disable*/
 import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Auth from "../../context/AuthContext";
-import Header from "../../includes/Header";
-import Sidebar from "../../includes/Sidebar";
+import Auth from "../../../context/AuthContext";
 import { toast } from "react-toastify";
-import { UrlPhoto } from "../../public/BaseUrls";
+import { UrlPhoto } from "../../../public/BaseUrls";
+import Footer from "../../../includes/Footer";
+import Sidebar from "../../../includes/Sidebar";
+import Header from "../../../includes/Header";
 
 const UserDetails = () => {
   const { getUserDetails, updateRole } = useContext(Auth);
@@ -187,6 +189,7 @@ const UserDetails = () => {
             </div>
           </div>
         </main>
+        <Footer />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import Header from "../../includes/Header";
-import Sidebar from "../../includes/Sidebar";
+import Header from "../../../includes/Header";
+import Sidebar from "../../../includes/Sidebar";
+import Footer from "../../../includes/Footer";
 
 const tableData = [
   {
@@ -202,6 +203,7 @@ const Carts = () => {
             </div>
           </div>
         </main>
+        <Footer />
       </div>
       {/* Ajoutez ici vos éléments enfants */}
     </div>

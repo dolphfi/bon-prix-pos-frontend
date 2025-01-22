@@ -1,5 +1,7 @@
+/*eslint-disable*/
 import React, { useContext, useState } from 'react';
 import Auth from '../context/AuthContext';
+import { UrlPhoto } from "../public/BaseUrls";
 
 export const UsersForm = ({ closeModal }) => {
     const { registerUser } = useContext(Auth);
@@ -328,11 +330,97 @@ export const UsersForm = ({ closeModal }) => {
     );
 };
 
-export const updateUserForm = ({ closeModal }) => {
+export const UpdateUserForm = () => {
+    const { user, updateProfile } = useContext(Auth);
     return (
         <div className="px-4 py-3 mb-8 bg-white rounded-lg shadow-md dark:bg-gray-800 mt-2">
-            <h2 className="text-lg font-bold mb-4">Modifier l'utilisateur</h2>
+            <h2 className="text-lg font-bold mb-4 text-gray-700 dark:text-gray-200">Modifier l'utilisateur</h2>
+            <form encType="multipart/form-data">
+                <div className="block text-sm inline-flex ml-4 mx-auto mt-8">
+                    <div className="flex items-center justify-center w-56 h-full overflow-hidden border-2 border-gray-100  dark:border-gray-700">
+                        <img src={`${UrlPhoto}${user.photo || ''}`} alt="Aperçu" />
+                    </div>
+                    <div className="block text-sm inline-block items-center">
+                        <div className="block text-sm inline-block items-center">
+                            <div className="ml-4">
+                                <label className="text-gray-700 dark:text-gray-400">
+                                    Nom
+                                </label>
+                                <input
+                                    type="text"
+                                    value={user.nom || ''}
+                                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input"
+                                    disabled
+                                />
+                            </div>
+                            <div className="ml-4">
+                                <label className="text-gray-700 dark:text-gray-400">
+                                    Prénom
+                                </label>
+                                <input
+                                    type="text"
+                                    value={user.prenom || ''}
+                                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input"
+                                    disabled
+                                />
+                            </div>
+                            <div className="ml-4">
+                                <label className="text-gray-700 dark:text-gray-400">
+                                    Email
+                                </label>
+                                <input
+                                    type="text"
+                                    value={user.email || ''}
+                                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input"
+                                    disabled
+                                />
+                            </div>
+                        </div>
+                        <div className="block text-sm inline-block items-center">
+                            <div className="ml-4">
+                                <label className="text-gray-700 dark:text-gray-400">
+                                    Created At
+                                </label>
+                                <input
+                                    type="text"
+                                    value={user.email}
+                                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input"
+                                    disabled
+                                />
+                            </div>
+                            <div className="ml-4">
+                                <label className="text-gray-700 dark:text-gray-400">
+                                    Username
+                                </label>
+                                <input
+                                    type="text"
+                                    value={user.username || ''}
+                                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input"
+                                    disabled
+                                />
+                            </div>
+                            <div className="ml-4">
+                                <label className="text-gray-700 dark:text-gray-400">
+                                    Rôle
+                                </label>
+                                <input
+                                    type="text"
+                                    value={user.roles || ''}
+                                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input"
+                                    disabled
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     );
 
+};
+
+export const ProductsForm = () => {
+    return (
+        <p>Products</p>
+    );
 };

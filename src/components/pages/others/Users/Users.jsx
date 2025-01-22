@@ -1,8 +1,10 @@
+/*eslint-disable*/
 import React, { useEffect, useState } from "react";
-import Header from "../../includes/Header";
-import Sidebar from "../../includes/Sidebar";
-import UserData from "../../data/UserData";
-import { UsersForm } from "../../Jobs/Form";
+import UserData from "../../../data/UserData";
+import Sidebar from "../../../includes/Sidebar";
+import Header from "../../../includes/Header";
+import { UsersForm } from "../../../Jobs/Form";
+import Footer from "../../../includes/Footer";
 
 const Users = () => {
   const [isModalOpen, setModalOpen] = useState(false); // État pour le modal
@@ -45,6 +47,7 @@ const Users = () => {
               <UserData />
             </div>
           </main>
+          <Footer />
         </div>
       </div>
 
