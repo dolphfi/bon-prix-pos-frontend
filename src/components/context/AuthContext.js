@@ -1,13 +1,14 @@
 /*eslint-disable*/
 import { createContext, useState, useEffect, useCallback } from "react";
 import { Bounce, toast } from 'react-toastify';
-import { UrlAuth, UrlUsers } from "../public/BaseUrls";
+import { UrlAuth, UrlProducts, UrlUsers } from "../public/BaseUrls";
 import { jwtDecode } from 'jwt-decode'; // Corrected import
 import { useNavigate } from 'react-router-dom';
 
 const Auth = createContext();
 const baseUrl = UrlAuth;
 const baseUrlUsers = UrlUsers;
+const baseUrlProd = UrlProducts;
 
 export default Auth;
 
@@ -487,6 +488,8 @@ export const AuthProvider = ({ children }) => {
             const headers = {
                 ...options.headers,
                 'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache', // Empêche le cache
+                'Pragma': 'no-cache',        // Parfois utile pour garantir la compatibilité avec certains serveurs
             };
 
             // Supprimer l'en-tête 'Content-Type' si body est un FormData
@@ -593,8 +596,7 @@ export const AuthProvider = ({ children }) => {
 
 
 
-
-    const contextData = { user, setUser, authTokens, setAuthTokens, loading, isOnline, login, logoutUser, getUserPhotoFromLocalStorage, registerUser, getAllUsers, toggleUserActivation, fetchWithAuth, getUserDetails, updateRole, forgortPassword, resetPassword, Profile, updateProfile, };
+    const contextData = { user, setUser, authTokens, setAuthTokens, loading, isOnline, login, logoutUser, getUserPhotoFromLocalStorage, registerUser, getAllUsers, toggleUserActivation, fetchWithAuth, getUserDetails, updateRole, forgortPassword, resetPassword, Profile, updateProfile };
 
     return (
         <Auth.Provider value={contextData}>

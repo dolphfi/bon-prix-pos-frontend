@@ -1,4 +1,3 @@
-/*eslint-disable*/
 import React, { useEffect, useState } from "react";
 import Header from "../../../includes/Header";
 import Sidebar from "../../../includes/Sidebar";

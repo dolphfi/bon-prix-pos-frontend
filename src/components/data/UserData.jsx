@@ -140,7 +140,7 @@ const UserData = () => {
                           className="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray"
                           title="Voir les détails"
                         >
-                          <i className="fas fa-eye" />
+                          <i className="ri-eye-line" />
                         </Link>
                         {/* Bouton Activer/Désactiver */}|
                         <button
@@ -171,58 +171,56 @@ const UserData = () => {
               )}
             </tbody>
           </table>
-
-          {/* Pagination */}
-          <div className="grid px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t dark:border-gray-700 bg-gray-50 sm:grid-cols-9 dark:text-gray-400 dark:bg-gray-800">
-            <span className="flex items-center col-span-3">
+        </div>
+        {/* Pagination */}
+        <div className="w-full border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <div className="px-4 py-3 flex items-center justify-between text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+            <span>
               Showing {indexOfFirstItem + 1}-
               {Math.min(indexOfLastItem, filteredData.length)} of{" "}
               {filteredData.length}
             </span>
-            <span className="col-span-2"></span>
-            <span className="flex col-span-4 mt-2 sm:mt-auto sm:justify-end">
-              <nav aria-label="Table navigation">
-                <ul className="inline-flex items-center">
-                  <li>
+            <nav aria-label="Table navigation" className="flex">
+              <ul className="inline-flex items-center space-x-1">
+                <li>
+                  <button
+                    className="px-3 py-1 rounded-md rounded-l-lg focus:outline-none focus:shadow-outline-purple"
+                    aria-label="Previous"
+                    onClick={() =>
+                      currentPage > 1 && handlePageChange(currentPage - 1)
+                    }
+                  >
+                    &lt;
+                  </button>
+                </li>
+                {[...Array(totalPages)].map((_, index) => (
+                  <li key={index}>
                     <button
-                      className="px-3 py-1 rounded-md rounded-l-lg focus:outline-none focus:shadow-outline-purple"
-                      aria-label="Previous"
-                      onClick={() =>
-                        currentPage > 1 && handlePageChange(currentPage - 1)
-                      }
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === index + 1
+                          ? "bg-purple-600 text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                      }`}
+                      onClick={() => handlePageChange(index + 1)}
                     >
-                      &lt;
+                      {index + 1}
                     </button>
                   </li>
-                  {[...Array(totalPages)].map((_, index) => (
-                    <li key={index}>
-                      <button
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === index + 1
-                            ? "bg-purple-600 text-white"
-                            : ""
-                        }`}
-                        onClick={() => handlePageChange(index + 1)}
-                      >
-                        {index + 1}
-                      </button>
-                    </li>
-                  ))}
-                  <li>
-                    <button
-                      className="px-3 py-1 rounded-md rounded-r-lg focus:outline-none focus:shadow-outline-purple"
-                      aria-label="Next"
-                      onClick={() =>
-                        currentPage < totalPages &&
-                        handlePageChange(currentPage + 1)
-                      }
-                    >
-                      &gt;
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-            </span>
+                ))}
+                <li>
+                  <button
+                    className="px-3 py-1 rounded-md rounded-r-lg focus:outline-none focus:shadow-outline-purple"
+                    aria-label="Next"
+                    onClick={() =>
+                      currentPage < totalPages &&
+                      handlePageChange(currentPage + 1)
+                    }
+                  >
+                    &gt;
+                  </button>
+                </li>
+              </ul>
+            </nav>
           </div>
         </div>
       </div>
