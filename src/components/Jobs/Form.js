@@ -2,7 +2,7 @@
 import React, { useContext, useState } from 'react';
 import Auth from '../context/AuthContext';
 import { UrlPhoto } from "../public/BaseUrls";
-import Prod from '../context/ProductsContext';
+import { useProducts } from '../context/ProductContext';
 
 export const UsersForm = ({ closeModal }) => {
     const { registerUser } = useContext(Auth);
@@ -427,7 +427,7 @@ export const ProductsForm = ({ closeModal }) => {
 };
 
 export const UpdateProductsForm = ({ item, onClose }) => {
-    const { UpdateProduct } = useContext(Prod);
+    const { UpdateProduct } = useProducts();
     // const [image, setImage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});

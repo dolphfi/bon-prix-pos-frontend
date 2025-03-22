@@ -1,5 +1,5 @@
 /*eslint-disable*/
-import { createContext, useState, useEffect, useCallback } from "react";
+import { createContext, useState, useEffect, useCallback, useContext } from "react";
 import { Bounce, toast } from 'react-toastify';
 import { UrlAuth, UrlProducts, UrlUsers } from "../public/BaseUrls";
 import { jwtDecode } from 'jwt-decode'; // Corrected import
@@ -9,6 +9,14 @@ const Auth = createContext();
 const baseUrl = UrlAuth;
 const baseUrlUsers = UrlUsers;
 const baseUrlProd = UrlProducts;
+
+export const useAuth = () => {
+  const context = useContext(Auth);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 export default Auth;
 
@@ -592,9 +600,6 @@ export const AuthProvider = ({ children }) => {
 
         return () => clearInterval(interval);
     }, [checkTokenExpiration]);
-
-
-
 
     const contextData = { user, setUser, authTokens, setAuthTokens, loading, isOnline, login, logoutUser, getUserPhotoFromLocalStorage, registerUser, getAllUsers, toggleUserActivation, fetchWithAuth, getUserDetails, updateRole, forgortPassword, resetPassword, Profile, updateProfile };
 

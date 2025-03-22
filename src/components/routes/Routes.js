@@ -14,71 +14,74 @@ import Profile from '../auth/Profile';
 import Carts from '../pages/others/Sales/Carts';
 import Reports from '../pages/others/Reports/Reports';
 import Sales from '../pages/others/Sales/Sales';
-import { ProdProvider } from '../context/ProductsContext';
+import { ProductProvider } from '../context/ProductContext';
+import { ReportProvider } from '../context/ReportContext';
 import ProductDetails from '../pages/others/Products/ProductDetails';
 
 function AppRoutes() {
     return (
         <BrowserRouter>
             <AuthProvider>
-                <ProdProvider>
-                    <Routes>
-                        {/* Route publique */}
-                        <Route path='/' element={<Login />} />
-                        <Route path='/forgot_password' element={<ForgotPassword />} />
-                        <Route path='/reset_password' element={<ResetPassword />} />
+                <ProductProvider>
+                    <ReportProvider>
+                        <Routes>
+                            {/* Route publique */}
+                            <Route path='/' element={<Login />} />
+                            <Route path='/forgot_password' element={<ForgotPassword />} />
+                            <Route path='/reset_password' element={<ResetPassword />} />
 
-                        {/* Route privée */}
-                        <Route path="/dashboard" element={
-                            <PrivateRoute>
-                                <Dashboard />
-                            </PrivateRoute>
-                        }
-                        />
-                        <Route path="/products" element={
-                            <PrivateRoute>
-                                <Products />
-                            </PrivateRoute>
-                        }
-                        />
-                        <Route path='/detail-product/:id' element={
-                            <PrivateRoute>
-                                <ProductDetails />
-                            </PrivateRoute>}
-                        />
-                        <Route path="/carts" element={
-                            <PrivateRoute>
-                                <Carts />
-                            </PrivateRoute>
-                        }
-                        />
-                        <Route path='/reports' element={
-                            <PrivateRoute>
-                                <Reports />
-                            </PrivateRoute>
-                        } />
-                        <Route path='/Sales' element={
-                            <PrivateRoute>
-                                <Sales />
-                            </PrivateRoute>
-                        } />
-                        <Route path='/Users' element={
-                            <PrivateRoute>
-                                <Users />
-                            </PrivateRoute>
-                        } />
-                        <Route path='/detail-user/:id' element={<PrivateRoute>
-                            <UserDetails />
-                        </PrivateRoute>} />
-                        <Route path='/profile' element={<PrivateRoute>
-                            <Profile />
-                        </PrivateRoute>} />
+                            {/* Route privée */}
+                            <Route path="/dashboard" element={
+                                <PrivateRoute>
+                                    <Dashboard />
+                                </PrivateRoute>
+                            }
+                            />
+                            <Route path="/products" element={
+                                <PrivateRoute>
+                                    <Products />
+                                </PrivateRoute>
+                            }
+                            />
+                            <Route path='/detail-product/:id' element={
+                                <PrivateRoute>
+                                    <ProductDetails />
+                                </PrivateRoute>}
+                            />
+                            <Route path="/carts" element={
+                                <PrivateRoute>
+                                    <Carts />
+                                </PrivateRoute>
+                            }
+                            />
+                            <Route path='/reports' element={
+                                <PrivateRoute>
+                                    <Reports />
+                                </PrivateRoute>
+                            } />
+                            <Route path='/Sales' element={
+                                <PrivateRoute>
+                                    <Sales />
+                                </PrivateRoute>
+                            } />
+                            <Route path='/Users' element={
+                                <PrivateRoute>
+                                    <Users />
+                                </PrivateRoute>
+                            } />
+                            <Route path='/detail-user/:id' element={<PrivateRoute>
+                                <UserDetails />
+                            </PrivateRoute>} />
+                            <Route path='/profile' element={<PrivateRoute>
+                                <Profile />
+                            </PrivateRoute>} />
 
 
-                        {/* Route pour la page non trouvée */}
-                        <Route path='*' element={<NotFound />} />
-                    </Routes>
-                </ProdProvider>
+                            {/* Route pour la page non trouvée */}
+                            <Route path='*' element={<NotFound />} />
+                        </Routes>
+                    </ReportProvider>
+                </ProductProvider>
             </AuthProvider>
         </BrowserRouter>
     )
