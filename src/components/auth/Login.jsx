@@ -89,12 +89,12 @@ const Login = () => {
       {loading ? (
         <div className="loader-containerh">
           <div className="loaderh"></div>
-          <img
+          {/* <img
             src="../assets/img/bon1.png"
             style={{ width: "70px", height: "70px" }}
             alt="Logo"
             className="loader-logo"
-          />
+          /> */}
         </div>
       ) : (
         <div className="flex items-center min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
@@ -104,11 +104,11 @@ const Login = () => {
               <div className="flex p-6 sm:p-12">
                 <div className="w-full">
                   <div className="flex items-center justify-center mt-1">
-                    <img
+                    {/* <img
                       className="object-cover w-56 h-auto"
                       src="../assets/img/bon.png"
                       alt="Logo"
-                    />
+                    /> */}
                   </div>
                   <form onSubmit={handleSubmit}>
                     <label className="block text-sm">
