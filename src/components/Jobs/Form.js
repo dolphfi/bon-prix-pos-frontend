@@ -420,342 +420,630 @@ export const UpdateUserForm = () => {
 
 };
 
-export const ProductsForm = ({ closeModal }) => {
-    return (
-        <p>Products</p>
-    );
-};
+// export const ProductsForm = ({ closeModal }) => {
+//     const { createProduct } = useProducts();
+//     const [loading, setLoading] = useState(false);
+//     const [errors, setErrors] = useState({});
+//     const [formData, setFormData] = useState({
+//         name: '',
+//         image: null,
+//         price: '',
+//         stock: '',
+//         category: '',
+//         description: '',
+//         discount: '',
+//         discountExpiry: ''
+//     });
 
-export const UpdateProductsForm = ({ item, onClose }) => {
-    const { UpdateProduct } = useProducts();
-    // const [image, setImage] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState({});
-    const [formData, setFormData] = useState({
-        name: item.name || '',
-        image: item.image || '',
-        price: item.price || '',
-        stock: item.stock || '',
-        category: item.category || '',
-        description: item.description || '',
-        discount: item.discount || '',
-        discountExpiry: item.discountExpiry || ''
-    });
+//     const validateForm = () => {
+//         const newErrors = {};
 
-    const validateForm = () => {
-        const newErrors = {};
+//         if (!formData.name.trim()) newErrors.name = 'Le nom est requis.';
+//         if (!formData.image) {
+//             newErrors.image = 'L\'image est requise.';
+//         } else if (!/\.(jpg|jpeg|png)$/i.test(formData.image.name)) {
+//             newErrors.image = 'Seuls les fichiers JPG, JPEG, et PNG sont acceptés.';
+//         }
+//         if (formData.price === undefined || formData.price === null || formData.price === '') {
+//             newErrors.price = 'Le prix est requis.';
+//         } else if (isNaN(Number(formData.price))) {
+//             newErrors.price = 'Le prix doit être un nombre valide (par exemple 100 ou 100.50).';
+//         } else if (Number(formData.price) <= 0) {
+//             newErrors.price = 'Le prix doit être supérieur à zéro.';
+//         }
 
-        if (!formData.name.trim()) newErrors.name = 'Le nom est requis.';
-        // Validation du champ image
-        // Validation du champ image, mais l'image n'est pas obligatoire
-        if (formData.image && !/\.(jpg|jpeg|png)$/i.test(formData.image.name)) {
-            newErrors.image = 'Seuls les fichiers JPG, JPEG, et PNG sont acceptés.';
-        }
-        if (formData.price === undefined || formData.price === null || formData.price === '') {
-            newErrors.price = 'Le prix est requis.';
-        } else if (isNaN(Number(formData.price))) {
-            newErrors.price = 'Le prix doit être un nombre valide (par exemple 100 ou 100.50).';
-        } else if (Number(formData.price) <= 0) {
-            newErrors.price = 'Le prix doit être supérieur à zéro.';
-        }
+//         if (formData.stock === undefined || formData.stock === null || formData.stock === '') {
+//             newErrors.stock = 'Le stock est requis.';
+//         } else if (!Number.isInteger(Number(formData.stock))) {
+//             newErrors.stock = 'Le stock doit être un nombre entier.';
+//         } else if (Number(formData.stock) <= 0) {
+//             newErrors.stock = 'Le stock doit être supérieur à zéro.';
+//         }
+//         if (!formData.description.trim()) newErrors.description = 'La description est requise.';
+//         if (!formData.category.trim()) newErrors.category = 'La catégorie est requise.';
 
-        if (formData.stock === undefined || formData.stock === null || formData.stock === '') {
-            newErrors.stock = 'Le stock est requis.';
-        } else if (!Number.isInteger(Number(formData.stock))) {
-            newErrors.stock = 'Le stock doit être un nombre entier.';
-        } else if (Number(formData.stock) <= 0) {
-            newErrors.stock = 'Le stock doit être supérieur à zéro.';
-        }
-        if (!formData.description.trim()) newErrors.description = 'La description est requise.';
-        if (!formData.category.trim()) newErrors.category = 'La catégorie est requise.';
-        // Validation du champ discount
-        if (formData.discount && formData.discount.toString().trim()) {
-            const discount = Number(formData.discount);
-            if (isNaN(discount)) {
-                newErrors.discount = 'La remise doit être un nombre valide.';
-            } else if (discount < 0) {
-                newErrors.discount = 'La remise ne peut pas être inférieure à zéro.';
-            } else if (discount > 100) {
-                newErrors.discount = 'La remise ne peut pas dépasser 100%.';
-            }
-        }
-        // Validation pour discount et discountexpiry
-        if (formData.discount && !formData.discountExpiry) {
-            newErrors.discountExpiry = 'Une date d\'expiration est requise si un discount est renseigné.';
-        }
-        setErrors(newErrors);
-        // Si aucun champ n'a d'erreur, le formulaire est valide
-        return Object.keys(newErrors).length === 0;
-    };
+//         if (formData.discount && formData.discount.toString().trim()) {
+//             const discount = Number(formData.discount);
+//             if (isNaN(discount)) {
+//                 newErrors.discount = 'La remise doit être un nombre valide.';
+//             } else if (discount < 0) {
+//                 newErrors.discount = 'La remise ne peut pas être inférieure à zéro.';
+//             } else if (discount > 100) {
+//                 newErrors.discount = 'La remise ne peut pas dépasser 100%.';
+//             }
+//         }
 
-    const handleInputChange = (field, value) => {
-        setFormData({ ...formData, [field]: value, });
+//         if (formData.discount && !formData.discountExpiry) {
+//             newErrors.discountExpiry = 'Une date d\'expiration est requise si un discount est renseigné.';
+//         }
 
-        // Validation immédiate du champ modifié
-        let error = '';
+//         setErrors(newErrors);
+//         return Object.keys(newErrors).length === 0;
+//     };
 
-        if (field === 'image') {
-            if (value && value.name && !/\.(jpg|jpeg|png)$/i.test(value.name)) {
-                error = "Seuls les fichiers JPG, JPEG et PNG sont acceptés.";
-            }
-        } else if (field === 'name' && !value.trim()) {
-            error = 'Le nom est requis.';
-        } else if (field === 'price') {
-            const price = Number(value);
-            if (isNaN(price)) {
-                error = 'Le prix doit être un nombre valide (par exemple 100 ou 100.50).';
-            } else if (price <= 0) {
-                error = 'Le prix doit être supérieur à zéro.';
-            }
-        } else if (field === 'stock') {
-            const stock = Number(value);
-            if (!Number.isInteger(stock)) {
-                error = 'Le stock doit être un nombre entier.';
-            } else if (stock <= 0) {
-                error = 'Le stock doit être supérieur à zéro.';
-            }
-        } else if (field === 'description' && !value.trim()) {
-            error = 'La description est requise.';
-        } else if (field === 'category' && !value.trim()) {
-            error = 'La catégorie est requise.';
-        } else if (field === 'discount') {
-            const discount = Number(value);
-            if (value.trim() && isNaN(discount)) {
-                error = 'La remise doit être un nombre valide.';
-            } else if (discount < 0) {
-                error = 'La remise ne peut pas être inférieure à zéro.';
-            } else if (discount > 100) {
-                error = 'La remise ne peut pas dépasser 100%.';
-            }
-        } else if (field === 'discountExpiry') {
-            if (formData.discount && !value.trim()) {
-                error = 'Une date d\'expiration est requise si un discount est renseigné.';
-            }
-        }
+//     const handleInputChange = (field, value) => {
+//         setFormData({ ...formData, [field]: value });
 
-        setErrors({ ...errors, [field]: error });
-    };
+//         let error = '';
 
-    const handleFileChangeProduct = (e) => {
-        const file = e.target.files[0];
-        // console.log('Fichier sélectionné:', file); // Vérifie que le fichier est bien sélectionné
-        if (file) {
-            setFormData((prevData) => ({
-                ...prevData,
-                image: file, // Assure-toi que l'image est bien mise à jour
-            }));
-        }
-    };
+//         if (field === 'image') {
+//             if (!value) {
+//                 error = 'L\'image est requise.';
+//             } else if (value.name && !/\.(jpg|jpeg|png)$/i.test(value.name)) {
+//                 error = "Seuls les fichiers JPG, JPEG et PNG sont acceptés.";
+//             }
+//         } else if (field === 'name' && !value.trim()) {
+//             error = 'Le nom est requis.';
+//         } else if (field === 'price') {
+//             if (value === '') {
+//                 error = 'Le prix est requis.';
+//             } else if (isNaN(Number(value))) {
+//                 error = 'Le prix doit être un nombre valide.';
+//             } else if (Number(value) <= 0) {
+//                 error = 'Le prix doit être supérieur à zéro.';
+//             }
+//         } else if (field === 'stock') {
+//             if (value === '') {
+//                 error = 'Le stock est requis.';
+//             } else if (!Number.isInteger(Number(value))) {
+//                 error = 'Le stock doit être un nombre entier.';
+//             } else if (Number(value) <= 0) {
+//                 error = 'Le stock doit être supérieur à zéro.';
+//             }
+//         } else if (field === 'description' && !value.trim()) {
+//             error = 'La description est requise.';
+//         } else if (field === 'category' && !value.trim()) {
+//             error = 'La catégorie est requise.';
+//         } else if (field === 'discount') {
+//             if (value && value.toString().trim()) {
+//                 const discount = Number(value);
+//                 if (isNaN(discount)) {
+//                     error = 'La remise doit être un nombre valide.';
+//                 } else if (discount < 0) {
+//                     error = 'La remise ne peut pas être inférieure à zéro.';
+//                 } else if (discount > 100) {
+//                     error = 'La remise ne peut pas dépasser 100%.';
+//                 }
+//             }
+//         }
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
+//         setErrors({ ...errors, [field]: error });
+//     };
 
-        // Gérer le changement de l'image avec handleInputChange
-        handleInputChange('image', file);
+//     const handleFileChange = (e) => {
+//         const file = e.target.files[0];
+//         if (file) {
+//             setFormData(prev => ({
+//                 ...prev,
+//                 image: file
+//             }));
+//             handleInputChange('image', file);
+//         }
+//     };
 
-        // Si tu veux ajouter d'autres actions avec handleFileChangeProduct, tu peux les ajouter ici
-        handleFileChangeProduct(e);  // Appelle la fonction handleFileChangeProduct (si elle contient de la logique supplémentaire)
-    };
+//     const handleSubmit = async (e) => {
+//         e.preventDefault();
+
+//         if (!validateForm()) {
+//             return;
+//         }
+
+//         setLoading(true);
+//         try {
+//             const formDataToSend = new FormData();
+//             Object.keys(formData).forEach(key => {
+//                 if (key === 'image' && formData[key]) {
+//                     formDataToSend.append('image', formData[key]);
+//                 } else if (formData[key] !== null && formData[key] !== undefined && formData[key] !== '') {
+//                     formDataToSend.append(key, formData[key]);
+//                 }
+//             });
+
+//             await createProduct(formDataToSend);
+//             closeModal();
+//         } catch (error) {
+//             console.error('Error creating product:', error);
+//             setErrors(prev => ({
+//                 ...prev,
+//                 submit: 'Une erreur est survenue lors de la création du produit.'
+//             }));
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+
+//     return (
+//         <div className="p-4">
+//             <form onSubmit={handleSubmit} className="space-y-4">
+//                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700">
+//                             Image
+//                             {errors.image && <span className="text-red-500 text-xs ml-1">{errors.image}</span>}
+//                         </label>
+//                         <input
+//                             type="file"
+//                             onChange={handleFileChange}
+//                             accept="image/*"
+//                             className="mt-1 block w-full text-sm text-gray-500
+//                                 file:mr-4 file:py-2 file:px-4
+//                                 file:rounded-full file:border-0
+//                                 file:text-sm file:font-semibold
+//                                 file:bg-violet-50 file:text-violet-700
+//                                 hover:file:bg-violet-100"
+//                         />
+//                     </div>
+
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700">
+//                             Nom
+//                             {errors.name && <span className="text-red-500 text-xs ml-1">{errors.name}</span>}
+//                         </label>
+//                         <input
+//                             type="text"
+//                             value={formData.name}
+//                             onChange={(e) => handleInputChange('name', e.target.value)}
+//                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500"
+//                         />
+//                     </div>
+
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700">
+//                             Prix
+//                             {errors.price && <span className="text-red-500 text-xs ml-1">{errors.price}</span>}
+//                         </label>
+//                         <input
+//                             type="number"
+//                             step="0.01"
+//                             value={formData.price}
+//                             onChange={(e) => handleInputChange('price', e.target.value)}
+//                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500"
+//                         />
+//                     </div>
+
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700">
+//                             Stock
+//                             {errors.stock && <span className="text-red-500 text-xs ml-1">{errors.stock}</span>}
+//                         </label>
+//                         <input
+//                             type="number"
+//                             value={formData.stock}
+//                             onChange={(e) => handleInputChange('stock', e.target.value)}
+//                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500"
+//                         />
+//                     </div>
+
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700">
+//                             Catégorie
+//                             {errors.category && <span className="text-red-500 text-xs ml-1">{errors.category}</span>}
+//                         </label>
+//                         <input
+//                             type="text"
+//                             value={formData.category}
+//                             onChange={(e) => handleInputChange('category', e.target.value)}
+//                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500"
+//                         />
+//                     </div>
+
+//                     <div className="sm:col-span-2">
+//                         <label className="block text-sm font-medium text-gray-700">
+//                             Description
+//                             {errors.description && <span className="text-red-500 text-xs ml-1">{errors.description}</span>}
+//                         </label>
+//                         <textarea
+//                             value={formData.description}
+//                             onChange={(e) => handleInputChange('description', e.target.value)}
+//                             rows="3"
+//                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500"
+//                         />
+//                     </div>
+
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700">
+//                             Remise (%)
+//                             {errors.discount && <span className="text-red-500 text-xs ml-1">{errors.discount}</span>}
+//                         </label>
+//                         <input
+//                             type="number"
+//                             min="0"
+//                             max="100"
+//                             value={formData.discount}
+//                             onChange={(e) => handleInputChange('discount', e.target.value)}
+//                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500"
+//                         />
+//                     </div>
+
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700">
+//                             Date d'expiration de la remise
+//                             {errors.discountExpiry && <span className="text-red-500 text-xs ml-1">{errors.discountExpiry}</span>}
+//                         </label>
+//                         <input
+//                             type="date"
+//                             value={formData.discountExpiry}
+//                             onChange={(e) => handleInputChange('discountExpiry', e.target.value)}
+//                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500"
+//                         />
+//                     </div>
+//                 </div>
+
+//                 {errors.submit && (
+//                     <div className="text-red-500 text-sm mt-2">{errors.submit}</div>
+//                 )}
+
+//                 <div className="flex justify-end space-x-3 mt-6">
+//                     <button
+//                         type="button"
+//                         onClick={closeModal}
+//                         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
+//                     >
+//                         Annuler
+//                     </button>
+//                     <button
+//                         type="submit"
+//                         disabled={loading}
+//                         className="px-4 py-2 text-sm font-medium text-white bg-violet-600 border border-transparent rounded-md shadow-sm hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 disabled:opacity-50"
+//                     >
+//                         {loading ? 'Création...' : 'Créer'}
+//                     </button>
+//                 </div>
+//             </form>
+//         </div>
+//     );
+// };
+
+// export const UpdateProductsForm = ({ item, onClose }) => {
+//     const { UpdateProduct } = useProducts();
+//     // const [image, setImage] = useState(null);
+//     const [loading, setLoading] = useState(false);
+//     const [errors, setErrors] = useState({});
+//     const [formData, setFormData] = useState({
+//         name: item.name || '',
+//         image: item.image || '',
+//         price: item.price || '',
+//         stock: item.stock || '',
+//         category: item.category || '',
+//         description: item.description || '',
+//         discount: item.discount || '',
+//         discountExpiry: item.discountExpiry || ''
+//     });
+
+//     const validateForm = () => {
+//         const newErrors = {};
+
+//         if (!formData.name.trim()) newErrors.name = 'Le nom est requis.';
+//         // Validation du champ image
+//         // Validation du champ image, mais l'image n'est pas obligatoire
+//         if (formData.image && !/\.(jpg|jpeg|png)$/i.test(formData.image.name)) {
+//             newErrors.image = 'Seuls les fichiers JPG, JPEG, et PNG sont acceptés.';
+//         }
+//         if (formData.price === undefined || formData.price === null || formData.price === '') {
+//             newErrors.price = 'Le prix est requis.';
+//         } else if (isNaN(Number(formData.price))) {
+//             newErrors.price = 'Le prix doit être un nombre valide (par exemple 100 ou 100.50).';
+//         } else if (Number(formData.price) <= 0) {
+//             newErrors.price = 'Le prix doit être supérieur à zéro.';
+//         }
+
+//         if (formData.stock === undefined || formData.stock === null || formData.stock === '') {
+//             newErrors.stock = 'Le stock est requis.';
+//         } else if (!Number.isInteger(Number(formData.stock))) {
+//             newErrors.stock = 'Le stock doit être un nombre entier.';
+//         } else if (Number(formData.stock) <= 0) {
+//             newErrors.stock = 'Le stock doit être supérieur à zéro.';
+//         }
+//         if (!formData.description.trim()) newErrors.description = 'La description est requise.';
+//         if (!formData.category.trim()) newErrors.category = 'La catégorie est requise.';
+//         // Validation du champ discount
+//         if (formData.discount && formData.discount.toString().trim()) {
+//             const discount = Number(formData.discount);
+//             if (isNaN(discount)) {
+//                 newErrors.discount = 'La remise doit être un nombre valide.';
+//             } else if (discount < 0) {
+//                 newErrors.discount = 'La remise ne peut pas être inférieure à zéro.';
+//             } else if (discount > 100) {
+//                 newErrors.discount = 'La remise ne peut pas dépasser 100%.';
+//             }
+//         }
+//         // Validation pour discount et discountexpiry
+//         if (formData.discount && !formData.discountExpiry) {
+//             newErrors.discountExpiry = 'Une date d\'expiration est requise si un discount est renseigné.';
+//         }
+//         setErrors(newErrors);
+//         // Si aucun champ n'a d'erreur, le formulaire est valide
+//         return Object.keys(newErrors).length === 0;
+//     };
+
+//     const handleInputChange = (field, value) => {
+//         setFormData({ ...formData, [field]: value, });
+
+//         // Validation immédiate du champ modifié
+//         let error = '';
+
+//         if (field === 'image') {
+//             if (value && value.name && !/\.(jpg|jpeg|png)$/i.test(value.name)) {
+//                 error = "Seuls les fichiers JPG, JPEG et PNG sont acceptés.";
+//             }
+//         } else if (field === 'name' && !value.trim()) {
+//             error = 'Le nom est requis.';
+//         } else if (field === 'price') {
+//             const price = Number(value);
+//             if (isNaN(price)) {
+//                 error = 'Le prix doit être un nombre valide (par exemple 100 ou 100.50).';
+//             } else if (price <= 0) {
+//                 error = 'Le prix doit être supérieur à zéro.';
+//             }
+//         } else if (field === 'stock') {
+//             const stock = Number(value);
+//             if (!Number.isInteger(stock)) {
+//                 error = 'Le stock doit être un nombre entier.';
+//             } else if (stock <= 0) {
+//                 error = 'Le stock doit être supérieur à zéro.';
+//             }
+//         } else if (field === 'description' && !value.trim()) {
+//             error = 'La description est requise.';
+//         } else if (field === 'category' && !value.trim()) {
+//             error = 'La catégorie est requise.';
+//         } else if (field === 'discount') {
+//             const discount = Number(value);
+//             if (value.trim() && isNaN(discount)) {
+//                 error = 'La remise doit être un nombre valide.';
+//             } else if (discount < 0) {
+//                 error = 'La remise ne peut pas être inférieure à zéro.';
+//             } else if (discount > 100) {
+//                 error = 'La remise ne peut pas dépasser 100%.';
+//             }
+//         } else if (field === 'discountExpiry') {
+//             if (formData.discount && !value.trim()) {
+//                 error = 'Une date d\'expiration est requise si un discount est renseigné.';
+//             }
+//         }
+
+//         setErrors({ ...errors, [field]: error });
+//     };
+
+//     const handleFileChangeProduct = (e) => {
+//         const file = e.target.files[0];
+//         // console.log('Fichier sélectionné:', file); // Vérifie que le fichier est bien sélectionné
+//         if (file) {
+//             setFormData((prevData) => ({
+//                 ...prevData,
+//                 image: file, // Assure-toi que l'image est bien mise à jour
+//             }));
+//         }
+//     };
+
+//     const handleFileChange = (e) => {
+//         const file = e.target.files[0];
+
+//         // Gérer le changement de l'image avec handleInputChange
+//         handleInputChange('image', file);
+
+//         // Si tu veux ajouter d'autres actions avec handleFileChangeProduct, tu peux les ajouter ici
+//         handleFileChangeProduct(e);  // Appelle la fonction handleFileChangeProduct (si elle contient de la logique supplémentaire)
+//     };
 
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+//     const handleSubmit = async (e) => {
+//         e.preventDefault();
 
-        if (!validateForm()) {
-            return;
-        }
+//         if (!validateForm()) {
+//             return;
+//         }
 
-        const formDataToSend = new FormData();
+//         const formDataToSend = new FormData();
 
-        // Ajoute tous les champs de formData
-        Object.keys(formData).forEach((key) => {
-            formDataToSend.append(key, formData[key]);
-        });
+//         // Ajoute tous les champs de formData
+//         Object.keys(formData).forEach((key) => {
+//             formDataToSend.append(key, formData[key]);
+//         });
 
-        try {
-            setLoading(true);
-            await UpdateProduct(item.id, formDataToSend);
-            console.log(item.id, formDataToSend);
+//         try {
+//             setLoading(true);
+//             await UpdateProduct(item.id, formDataToSend);
+//             console.log(item.id, formDataToSend);
 
-            setLoading(false);
-            setErrors({}); // Réinitialiser les erreurs
-            onClose(); // Appeler la fonction de fermeture du modal
-        } catch (error) {
-            console.error('Erreur lors de la modification:', error);
-            setLoading(false);
-        }
-    };
+//             setLoading(false);
+//             setErrors({}); // Réinitialiser les erreurs
+//             onClose(); // Appeler la fonction de fermeture du modal
+//         } catch (error) {
+//             console.error('Erreur lors de la modification:', error);
+//             setLoading(false);
+//         }
+//     };
 
-    return (
-        <div className="px-4 py-3 mb-8 bg-white rounded-lg shadow-md dark:bg-gray-800 mt-2">
-            <h2 className="text-lg font-bold mb-4 text-gray-700 dark:text-gray-200">Edit Product</h2>
-            <form onSubmit={handleSubmit} encType="multipart/form-data">
-                <div className="block text-sm inline-flex items-center">
-                    <div className="block text-sm inline-block ml-4 items-center">
-                        <label className="text-gray-700 dark:text-gray-400">Nom</label>
-                        <input
-                            type="text"
-                            value={formData.name}
-                            onChange={(e) => handleInputChange('name', e.target.value)}
-                            className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.name && 'border-error'}`}
-                        />
-                        {/* Réserver l'espace pour le message d'erreur */}
-                        <small
-                            className={`text-xs text-red-600 mt-1 block`}
-                            style={{ minHeight: '20px' }}
-                        >
-                            {errors.name || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
-                        </small>
-                    </div>
-                    <div className="block text-sm inline-block ml-4 items-center">
-                        <label className="text-gray-700 dark:text-gray-400">Description</label>
-                        <textarea
-                            type="text"
-                            value={formData.description}
-                            onChange={(e) => handleInputChange('description', e.target.value)}
-                            className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.description && 'border-error'}`}
-                        />
-                        {/* Réserver l'espace pour le message d'erreur */}
-                        <small
-                            className={`text-xs text-red-600 mt-1 block`}
-                            style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
-                        >
-                            {errors.description || '\u00A0'} {/*Ajoutez un espace non-brisé si aucune erreur */}
-                        </small>
-                    </div>
-                </div>
-                <div className="block text-sm inline-flex items-center">
-                    <div className="block text-sm inline-block ml-4 items-center">
-                        <label className="text-gray-700 dark:text-gray-400">Prix</label>
-                        <input
-                            type="text"
-                            value={formData.price}
-                            onChange={(e) => handleInputChange('price', e.target.value)}
-                            className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.price && 'border-error'}`}
-                        />
-                        {/* Réserver l'espace pour le message d'erreur */}
-                        <small
-                            className={`text-xs text-red-600 mt-1 block`}
-                            style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
-                        >
-                            {errors.price || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
-                        </small>
-                    </div>
-                    <div className="block text-sm inline-block ml-4 items-center">
-                        <label className="text-gray-700 dark:text-gray-400">Stock</label>
-                        <input
-                            type="text"
-                            value={formData.stock}
-                            onChange={(e) => handleInputChange('stock', e.target.value)}
-                            className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.stock && 'border-error'}`}
-                        />
-                        {/* Réserver l'espace pour le message d'erreur */}
-                        <small
-                            className={`text-xs text-red-600 mt-1 block`}
-                            style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
-                        >
-                            {errors.stock || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
-                        </small>
-                    </div>
-                </div>
-                <div className="block text-sm inline-flex items-center">
-                    <div className="block text-sm inline-block ml-4 items-center">
-                        <label className="text-gray-700 dark:text-gray-400">Remise <span className='text-xs'>(en %)</span></label>
-                        <input
-                            type="text"
-                            value={formData.discount}
-                            onChange={(e) => handleInputChange('discount', e.target.value)}
-                            className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.discount && 'border-error'}`}
-                        />
-                        {/* Réserver l'espace pour le message d'erreur */}
-                        <small
-                            className={`text-xs text-red-600 mt-1 block`}
-                            style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
-                        >
-                            {errors.discount || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
-                        </small>
-                    </div>
-                    <div className="block text-sm inline-block ml-4 items-center">
-                        <label className="text-gray-700 dark:text-gray-400">Remise <span className='text-xs'>(date expiration)</span> </label>
-                        <input
-                            type="date"
-                            value={formData.discountExpiry}
-                            onChange={(e) => handleInputChange('discountExpiry', e.target.value)}
-                            className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.discountExpiry && 'border-error'}`}
-                        />
-                        {/* Réserver l'espace pour le message d'erreur */}
-                        <small
-                            className={`text-xs text-red-600 mt-1 block`}
-                            style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
-                        >
-                            {errors.discountExpiry || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
-                        </small>
-                    </div>
-                </div>
-                <div className="block text-sm inline-flex  items-center">
-                    <div className="block text-sm inline-block ml-4 items-center">
-                        <label className="text-gray-700 dark:text-gray-400">Category</label>
-                        <select
-                            value={formData.category}
-                            onChange={(e) => handleInputChange('category', e.target.value)}
-                            className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.category && 'border-error'}`}
-                        >
-                            <option value="">Sélectionnez un category</option>
-                            <option value="beverages">Beverages</option>
-                            <option value="condiments">Condiments</option>
-                            <option value="confectionery">Confectionery</option>
-                            <option value="dairy products">DairyProducts</option>
-                            <option value="grains/cereals">GrainsCereals</option>
-                            <option value="meat/poultry">MeatPoultry</option>
-                            <option value="produce">Produce</option>
-                            <option value="seafood">Seafood</option>
-                            <option value="other">Other</option>
-                        </select>
-                        {/* Réserver l'espace pour le message d'erreur */}
-                        <small
-                            className={`text-xs text-red-600 mt-1 block`}
-                            style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
-                        >
-                            {errors.category || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
-                        </small>
-                    </div>
-                    <div className="block text-sm inline-block ml-4 items-center">
-                        <label className="text-gray-700 dark:text-gray-400">Image</label>
-                        <input
-                            className="block mt-1 text-sm form-input dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                            type="file"
-                            // onChange={(e) => handleInputChange('image', e.target.files[0])} // Utiliser files[0]
-                            onChange={handleFileChange}
-                        />
-                        {/* Réserver l'espace pour le message d'erreur */}
-                        <small
-                            className={`text-xs text-red-600 mt-1 block`}
-                            style={{ minHeight: '20px' }}
-                        >
-                            {errors.image || '\u00A0'} {/* Affiche une espace non-brisé si aucune erreur */}
-                        </small>
-                    </div>
+//     return (
+//         <div className="px-4 py-3 mb-8 bg-white rounded-lg shadow-md dark:bg-gray-800 mt-2">
+//             <h2 className="text-lg font-bold mb-4 text-gray-700 dark:text-gray-200">Edit Product</h2>
+//             <form onSubmit={handleSubmit} encType="multipart/form-data">
+//                 <div className="block text-sm inline-flex items-center">
+//                     <div className="block text-sm inline-block ml-4 items-center">
+//                         <label className="text-gray-700 dark:text-gray-400">Nom</label>
+//                         <input
+//                             type="text"
+//                             value={formData.name}
+//                             onChange={(e) => handleInputChange('name', e.target.value)}
+//                             className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.name && 'border-error'}`}
+//                         />
+//                         {/* Réserver l'espace pour le message d'erreur */}
+//                         <small
+//                             className={`text-xs text-red-600 mt-1 block`}
+//                             style={{ minHeight: '20px' }}
+//                         >
+//                             {errors.name || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
+//                         </small>
+//                     </div>
+//                     <div className="block text-sm inline-block ml-4 items-center">
+//                         <label className="text-gray-700 dark:text-gray-400">Description</label>
+//                         <textarea
+//                             type="text"
+//                             value={formData.description}
+//                             onChange={(e) => handleInputChange('description', e.target.value)}
+//                             className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.description && 'border-error'}`}
+//                         />
+//                         {/* Réserver l'espace pour le message d'erreur */}
+//                         <small
+//                             className={`text-xs text-red-600 mt-1 block`}
+//                             style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
+//                         >
+//                             {errors.description || '\u00A0'} {/*Ajoutez un espace non-brisé si aucune erreur */}
+//                         </small>
+//                     </div>
+//                 </div>
+//                 <div className="block text-sm inline-flex items-center">
+//                     <div className="block text-sm inline-block ml-4 items-center">
+//                         <label className="text-gray-700 dark:text-gray-400">Prix</label>
+//                         <input
+//                             type="text"
+//                             value={formData.price}
+//                             onChange={(e) => handleInputChange('price', e.target.value)}
+//                             className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.price && 'border-error'}`}
+//                         />
+//                         {/* Réserver l'espace pour le message d'erreur */}
+//                         <small
+//                             className={`text-xs text-red-600 mt-1 block`}
+//                             style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
+//                         >
+//                             {errors.price || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
+//                         </small>
+//                     </div>
+//                     <div className="block text-sm inline-block ml-4 items-center">
+//                         <label className="text-gray-700 dark:text-gray-400">Stock</label>
+//                         <input
+//                             type="text"
+//                             value={formData.stock}
+//                             onChange={(e) => handleInputChange('stock', e.target.value)}
+//                             className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.stock && 'border-error'}`}
+//                         />
+//                         {/* Réserver l'espace pour le message d'erreur */}
+//                         <small
+//                             className={`text-xs text-red-600 mt-1 block`}
+//                             style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
+//                         >
+//                             {errors.stock || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
+//                         </small>
+//                     </div>
+//                 </div>
+//                 <div className="block text-sm inline-flex items-center">
+//                     <div className="block text-sm inline-block ml-4 items-center">
+//                         <label className="text-gray-700 dark:text-gray-400">Remise <span className='text-xs'>(en %)</span></label>
+//                         <input
+//                             type="text"
+//                             value={formData.discount}
+//                             onChange={(e) => handleInputChange('discount', e.target.value)}
+//                             className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.discount && 'border-error'}`}
+//                         />
+//                         {/* Réserver l'espace pour le message d'erreur */}
+//                         <small
+//                             className={`text-xs text-red-600 mt-1 block`}
+//                             style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
+//                         >
+//                             {errors.discount || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
+//                         </small>
+//                     </div>
+//                     <div className="block text-sm inline-block ml-4 items-center">
+//                         <label className="text-gray-700 dark:text-gray-400">Remise <span className='text-xs'>(date expiration)</span> </label>
+//                         <input
+//                             type="date"
+//                             value={formData.discountExpiry}
+//                             onChange={(e) => handleInputChange('discountExpiry', e.target.value)}
+//                             className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.discountExpiry && 'border-error'}`}
+//                         />
+//                         {/* Réserver l'espace pour le message d'erreur */}
+//                         <small
+//                             className={`text-xs text-red-600 mt-1 block`}
+//                             style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
+//                         >
+//                             {errors.discountExpiry || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
+//                         </small>
+//                     </div>
+//                 </div>
+//                 <div className="block text-sm inline-flex  items-center">
+//                     <div className="block text-sm inline-block ml-4 items-center">
+//                         <label className="text-gray-700 dark:text-gray-400">Category</label>
+//                         <select
+//                             value={formData.category}
+//                             onChange={(e) => handleInputChange('category', e.target.value)}
+//                             className={`block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 form-input ${errors.category && 'border-error'}`}
+//                         >
+//                             <option value="">Sélectionnez un category</option>
+//                             <option value="beverages">Beverages</option>
+//                             <option value="condiments">Condiments</option>
+//                             <option value="confectionery">Confectionery</option>
+//                             <option value="dairy products">DairyProducts</option>
+//                             <option value="grains/cereals">GrainsCereals</option>
+//                             <option value="meat/poultry">MeatPoultry</option>
+//                             <option value="produce">Produce</option>
+//                             <option value="seafood">Seafood</option>
+//                             <option value="other">Other</option>
+//                         </select>
+//                         {/* Réserver l'espace pour le message d'erreur */}
+//                         <small
+//                             className={`text-xs text-red-600 mt-1 block`}
+//                             style={{ minHeight: '20px' }} // Ajustez la hauteur selon vos besoins
+//                         >
+//                             {errors.category || '\u00A0'} {/* Ajoutez un espace non-brisé si aucune erreur */}
+//                         </small>
+//                     </div>
+//                     <div className="block text-sm inline-block ml-4 items-center">
+//                         <label className="text-gray-700 dark:text-gray-400">Image</label>
+//                         <input
+//                             className="block mt-1 text-sm form-input dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+//                             type="file"
+//                             // onChange={(e) => handleInputChange('image', e.target.files[0])} // Utiliser files[0]
+//                             onChange={handleFileChange}
+//                         />
+//                         {/* Réserver l'espace pour le message d'erreur */}
+//                         <small
+//                             className={`text-xs text-red-600 mt-1 block`}
+//                             style={{ minHeight: '20px' }}
+//                         >
+//                             {errors.image || '\u00A0'} {/* Affiche une espace non-brisé si aucune erreur */}
+//                         </small>
+//                     </div>
 
-                </div>
-                <div className="flex items-center justify-center w-56 h-full overflow-hidden border-2 border-gray-100  dark:border-gray-700">
-                    <img src={`${UrlPhoto}${formData.image || ''}`} alt="Aperçu" />
-                </div>
-                <div className=" text-sm items-end justify-end ">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="mt-6 w-full flex px-4 py-2 items-center justify-center text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple">
-                        {loading ? (
-                            'Chargement...'
-                        ) : (
-                            <>
-                                <span>Update</span>
-                                <i className="ri-pencil-line ml-2"></i>
-                            </>
-                        )}
-                    </button>
-                </div>
-            </form>
-        </div>
-    );
-};
+//                 </div>
+//                 <div className="flex items-center justify-center w-56 h-full overflow-hidden border-2 border-gray-100  dark:border-gray-700">
+//                     <img src={`${UrlPhoto}${formData.image || ''}`} alt="Aperçu" />
+//                 </div>
+//                 <div className=" text-sm items-end justify-end ">
+//                     <button
+//                         type="submit"
+//                         disabled={loading}
+//                         className="mt-6 w-full flex px-4 py-2 items-center justify-center text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple">
+//                         {loading ? (
+//                             'Chargement...'
+//                         ) : (
+//                             <>
+//                                 <span>Update</span>
+//                                 <i className="ri-pencil-line ml-2"></i>
+//                             </>
+//                         )}
+//                     </button>
+//                 </div>
+//             </form>
+//         </div>
+//     );
+// };

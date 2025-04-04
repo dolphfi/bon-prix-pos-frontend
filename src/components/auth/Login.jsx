@@ -11,7 +11,7 @@ const Login = () => {
   const [loadingAuth, setLoadingAuth] = useState(false);
 
   useEffect(() => {
-    document.title = "Bon Prix | Login";
+    document.title = "Login";
   }, []);
 
   // Charger le mode à partir de localStorage lorsque le composant se charge

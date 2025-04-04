@@ -8,142 +8,91 @@ const Dashboard = createContext();
 export const DashboardProvider = ({ children }) => {
   const { fetchWithAuth } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [salesTrends, setSalesTrends] = useState(null);
-  const [topProducts, setTopProducts] = useState(null);
-  const [stockAlerts, setStockAlerts] = useState(null);
-  const [revenueStats, setRevenueStats] = useState(null);
+  const [salesTrends, setSalesTrends] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
+  const [stockAlerts, setStockAlerts] = useState([]);
+  const [revenueStats, setRevenueStats] = useState({
+    sales: 0,
+    costs: 0,
+    profit: 0
+  });
 
-  // Récupérer les tendances des ventes
-  const getSalesTrends = async (period = 'week') => {
+  const handleApiError = (error, message) => {
+    console.error('Erreur:', error);
+    toast.error(message);
+    return null;
+  };
+
+  const getSalesTrends = async (period = 'day') => {
     try {
       setLoading(true);
       const response = await fetchWithAuth(`${UrlDashboard}trends?period=${period}`);
+      if (!response.ok) throw new Error('Erreur serveur');
       const data = await response.json();
-      setSalesTrends(data);
+      setSalesTrends(Array.isArray(data) ? data : []);
       return data;
     } catch (error) {
-      console.error('Erreur:', error);
-      toast.error('Erreur lors du chargement des tendances');
-      throw error;
+      return handleApiError(error, 'Erreur lors du chargement des tendances');
     } finally {
       setLoading(false);
     }
   };
 
-  // Récupérer les meilleurs produits
   const getTopProducts = async (limit = 5) => {
     try {
-      setLoading(true);
       const response = await fetchWithAuth(`${UrlDashboard}top-products?limit=${limit}`);
+      if (!response.ok) throw new Error('Erreur serveur');
       const data = await response.json();
-      setTopProducts(data);
+      setTopProducts(Array.isArray(data) ? data : []);
       return data;
     } catch (error) {
-      console.error('Erreur:', error);
-      toast.error('Erreur lors du chargement des meilleurs produits');
-      throw error;
-    } finally {
-      setLoading(false);
+      return handleApiError(error, 'Erreur lors du chargement des meilleurs produits');
     }
   };
 
-  // Récupérer les alertes de stock
   const getStockAlerts = async () => {
     try {
-      setLoading(true);
       const response = await fetchWithAuth(`${UrlDashboard}stock-alerts`);
+      if (!response.ok) throw new Error('Erreur serveur');
       const data = await response.json();
-      setStockAlerts(data);
+      setStockAlerts(Array.isArray(data) ? data : []);
       return data;
     } catch (error) {
-      console.error('Erreur:', error);
-      toast.error('Erreur lors du chargement des alertes de stock');
-      throw error;
-    } finally {
-      setLoading(false);
+      return handleApiError(error, 'Erreur lors du chargement des alertes de stock');
     }
   };
 
-  // Récupérer les statistiques de revenus
-  const getRevenueStats = async (period = 'month') => {
+  const getRevenueStats = async () => {
     try {
-      setLoading(true);
-      const response = await fetchWithAuth(`${UrlDashboard}revenue?period=${period}`);
+      const response = await fetchWithAuth(`${UrlDashboard}revenue-stats`);
+      if (!response.ok) throw new Error('Erreur serveur');
       const data = await response.json();
-      setRevenueStats(data);
+      setRevenueStats(data || { sales: 0, costs: 0, profit: 0 });
       return data;
     } catch (error) {
-      console.error('Erreur:', error);
-      toast.error('Erreur lors du chargement des statistiques de revenus');
-      throw error;
-    } finally {
-      setLoading(false);
+      return handleApiError(error, 'Erreur lors du chargement des statistiques');
     }
   };
 
-  // Configurer les alertes
-  const configureAlerts = async (config) => {
-    try {
-      setLoading(true);
-      const response = await fetchWithAuth(`${UrlDashboard}configure-alerts`, {
-        method: 'POST',
-        body: JSON.stringify(config),
-      });
-      const data = await response.json();
-      toast.success('Configuration des alertes mise à jour');
-      return data;
-    } catch (error) {
-      console.error('Erreur:', error);
-      toast.error('Erreur lors de la configuration des alertes');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+  const value = {
+    loading,
+    salesTrends,
+    topProducts,
+    stockAlerts,
+    revenueStats,
+    getSalesTrends,
+    getTopProducts,
+    getStockAlerts,
+    getRevenueStats
   };
 
-  // Générer un rapport de performance
-  const generatePerformanceReport = async (config) => {
-    try {
-      setLoading(true);
-      const response = await fetchWithAuth(`${UrlDashboard}performance-report`, {
-        method: 'POST',
-        body: JSON.stringify(config),
-      });
-      const data = await response.json();
-      toast.success('Rapport de performance généré');
-      return data;
-    } catch (error) {
-      console.error('Erreur:', error);
-      toast.error('Erreur lors de la génération du rapport');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Dashboard.Provider value={{
-      loading,
-      salesTrends,
-      topProducts,
-      stockAlerts,
-      revenueStats,
-      getSalesTrends,
-      getTopProducts,
-      getStockAlerts,
-      getRevenueStats,
-      configureAlerts,
-      generatePerformanceReport,
-    }}>
-      {children}
-    </Dashboard.Provider>
-  );
+  return <Dashboard.Provider value={value}>{children}</Dashboard.Provider>;
 };
 
 export const useDashboard = () => {
   const context = useContext(Dashboard);
   if (!context) {
-    throw new Error('useDashboard must be used within a DashboardProvider');
+    throw new Error('useDashboard doit être utilisé à l\'intérieur d\'un DashboardProvider');
   }
   return context;
 };

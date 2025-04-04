@@ -10,6 +10,7 @@
   border-radius: 0.5rem;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  @apply w-full h-[300px] relative;
 }
 
 .chart-container h3 {
@@ -17,6 +18,7 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: #374151;
+  @apply text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4;
 }
 
 .stock-alerts {
@@ -30,6 +32,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  @apply space-y-3 mt-4;
 }
 
 .alert-item {
@@ -39,15 +42,18 @@
   padding: 0.75rem;
   background: #f9fafb;
   border-radius: 0.375rem;
+  @apply flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg shadow-sm;
 }
 
 .product-name {
   font-weight: 500;
   color: #374151;
+  @apply text-sm font-medium text-gray-700 dark:text-gray-200;
 }
 
 .stock-level {
   color: #6b7280;
+  @apply text-sm text-gray-500 dark:text-gray-400;
 }
 
 .status {
@@ -55,6 +61,7 @@
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
+  @apply px-2 py-1 text-xs font-medium rounded-full;
 }
 
 .status.low {
@@ -72,8 +79,53 @@
   color: #059669;
 }
 
+.status.critical {
+  @apply text-red-700 bg-red-100 dark:text-red-100 dark:bg-red-700;
+}
+
+.status.warning {
+  @apply text-yellow-700 bg-yellow-100 dark:text-yellow-100 dark:bg-yellow-700;
+}
+
+.chart-wrapper {
+  @apply relative p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md h-[300px];
+}
+
+.stats-grid {
+  @apply grid grid-cols-2 gap-4 mb-8;
+}
+
+.stat-card {
+  @apply p-4 bg-white rounded-lg shadow-sm dark:bg-gray-800;
+}
+
+.stat-card h4 {
+  @apply mb-4 font-semibold text-gray-800 dark:text-gray-300;
+}
+
+.stat-card .value {
+  @apply text-2xl font-bold text-gray-900 dark:text-gray-100;
+}
+
+.loading {
+  @apply flex items-center justify-center p-6;
+}
+
+.loading-spinner {
+  @apply w-8 h-8 border-4 border-primary-200 rounded-full animate-spin;
+  border-top-color: theme('colors.primary.500');
+}
+
 @media (max-width: 768px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    @apply grid-cols-1;
+  }
+  
+  .chart-container {
+    @apply h-[250px];
   }
 }

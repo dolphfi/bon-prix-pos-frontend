@@ -1,22 +1,22 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../../includes/Header";
 import Sidebar from "../../../includes/Sidebar";
 import Footer from "../../../includes/Footer";
-import Sales from "../../../context/SalesContext";
+import { useSales } from "../../../context/SalesContext";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 import fr from "date-fns/locale/fr";
 
 const SalesHistory = () => {
   const isSideMenuOpen = true;
-  const { getSales, printReceipt } = useContext(Sales);
+  const { getSales, printReceipt, finalizeSale, handleDownloadReceipt } = useSales();
 
   // États
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
-    startDate: format(new Date(), 'yyyy-MM-dd'),
-    endDate: format(new Date(), 'yyyy-MM-dd'),
+    startDate: "",
+    endDate: "",
     minAmount: "",
     maxAmount: "",
     status: "all",
@@ -24,25 +24,45 @@ const SalesHistory = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [currentSale, setCurrentSale] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Chargement des ventes
   useEffect(() => {
     loadSales();
-  }, [currentPage, filters]);
+  }, [currentPage]);
+
+  const handlePrintReceipt = async (saleId) => {
+    try {
+      await printReceipt(saleId);
+      toast.success('Reçu généré avec succès');
+    } catch (error) {
+      console.error('Error printing receipt:', error);
+      toast.error('Erreur lors de la génération du reçu');
+    }
+  };
 
   const loadSales = async () => {
     try {
       setLoading(true);
       const response = await getSales({
-        ...filters,
         page: currentPage,
         limit: 10
       });
-      
-      setSales(response.sales);
-      setTotalPages(Math.ceil(response.total / 10));
+
+      console.log('Response:', response);
+      if (response?.data?.items) {
+        setSales(response.data.items);
+        setTotalPages(Math.ceil(response.data.total / 10));
+      } else {
+        setSales([]);
+        setTotalPages(1);
+      }
     } catch (error) {
+      console.error('Error loading sales:', error);
       toast.error("Erreur lors du chargement des ventes");
+      setSales([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -55,21 +75,47 @@ const SalesHistory = () => {
       ...prev,
       [name]: value
     }));
-    setCurrentPage(1); // Reset à la première page
+    setCurrentPage(1);
   };
 
-  // Impression du reçu
-  const handlePrintReceipt = async (saleId) => {
+  // Pagination
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleFinalizeSale = async () => {
     try {
-      await printReceipt(saleId);
-      toast.success("Reçu généré avec succès");
+      setIsProcessing(true);
+      const result = await finalizeSale(currentSale);
+      
+      console.log("Sale result:", result); // Debug log
+      
+      // Si l'impression a échoué et qu'on doit télécharger le reçu
+      if (result.receipt?.shouldDownload) {
+        toast.info('Aucune imprimante disponible. Téléchargement du reçu...');
+        await handleDownloadReceipt(result.id);
+      }
+      
+      resetCart();
+      navigate('/sales');
     } catch (error) {
-      toast.error("Erreur lors de l'impression du reçu");
+      console.error('Error finalizing sale:', error);
+      toast.error('Erreur lors de la finalisation de la vente');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  const resetCart = () => {
+    // Implement cart reset logic here
+  };
+
+  const navigate = () => {
+    // Implement navigation logic here
+  };
+
   return (
-    <div className={`flex h-screen bg-gray-50 dark:bg-gray-900 ${isSideMenuOpen ? "overflow-hidden" : ""}`}>
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       <div className="flex flex-col flex-1 w-full">
         <Header />
@@ -81,81 +127,86 @@ const SalesHistory = () => {
 
             {/* Filtres */}
             <div className="px-4 py-3 mb-8 bg-white rounded-lg shadow-md dark:bg-gray-800">
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                <label className="block text-sm">
-                  <span className="text-gray-700 dark:text-gray-400">Date début</span>
-                  <input
-                    type="date"
-                    name="startDate"
-                    value={filters.startDate}
-                    onChange={handleFilterChange}
-                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                  />
-                </label>
-
-                <label className="block text-sm">
-                  <span className="text-gray-700 dark:text-gray-400">Date fin</span>
-                  <input
-                    type="date"
-                    name="endDate"
-                    value={filters.endDate}
-                    onChange={handleFilterChange}
-                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                  />
-                </label>
-
-                <label className="block text-sm">
-                  <span className="text-gray-700 dark:text-gray-400">Montant min</span>
-                  <input
-                    type="number"
-                    name="minAmount"
-                    value={filters.minAmount}
-                    onChange={handleFilterChange}
-                    placeholder="0"
-                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                  />
-                </label>
-
-                <label className="block text-sm">
-                  <span className="text-gray-700 dark:text-gray-400">Montant max</span>
-                  <input
-                    type="number"
-                    name="maxAmount"
-                    value={filters.maxAmount}
-                    onChange={handleFilterChange}
-                    placeholder="999999"
-                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                  />
-                </label>
+              <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+                <div>
+                  <label className="block text-sm">
+                    <span className="text-gray-700 dark:text-gray-400">Date début</span>
+                    <input
+                      type="date"
+                      name="startDate"
+                      value={filters.startDate}
+                      onChange={handleFilterChange}
+                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label className="block text-sm">
+                    <span className="text-gray-700 dark:text-gray-400">Date fin</span>
+                    <input
+                      type="date"
+                      name="endDate"
+                      value={filters.endDate}
+                      onChange={handleFilterChange}
+                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label className="block text-sm">
+                    <span className="text-gray-700 dark:text-gray-400">Montant min</span>
+                    <input
+                      type="number"
+                      name="minAmount"
+                      value={filters.minAmount}
+                      onChange={handleFilterChange}
+                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label className="block text-sm">
+                    <span className="text-gray-700 dark:text-gray-400">Montant max</span>
+                    <input
+                      type="number"
+                      name="maxAmount"
+                      value={filters.maxAmount}
+                      onChange={handleFilterChange}
+                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                    />
+                  </label>
+                </div>
               </div>
-
-              <div className="grid gap-6 mt-4 md:grid-cols-2">
-                <label className="block text-sm">
-                  <span className="text-gray-700 dark:text-gray-400">Statut</span>
-                  <select
-                    name="status"
-                    value={filters.status}
-                    onChange={handleFilterChange}
-                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-select"
-                  >
-                    <option value="all">Tous</option>
-                    <option value="completed">Complétée</option>
-                    <option value="cancelled">Annulée</option>
-                    <option value="pending">En attente</option>
-                  </select>
-                </label>
-
-                <label className="block text-sm">
-                  <span className="text-gray-700 dark:text-gray-400">Recherche</span>
-                  <input
-                    type="text"
-                    name="searchTerm"
-                    value={filters.searchTerm}
-                    onChange={handleFilterChange}
-                    placeholder="Rechercher par client, produit..."
-                    className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                  />
-                </label>
+              <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+                <div>
+                  <label className="block text-sm">
+                    <span className="text-gray-700 dark:text-gray-400">Statut</span>
+                    <select
+                      name="status"
+                      value={filters.status}
+                      onChange={handleFilterChange}
+                      className="block w-full mt-1 text-sm dark:text-gray-300 dark:border-gray-600 dark:bg-gray-700 form-select focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:focus:shadow-outline-gray"
+                    >
+                      <option value="all">Tous</option>
+                      <option value="completed">Complétée</option>
+                      <option value="pending">En attente</option>
+                      <option value="cancelled">Annulée</option>
+                    </select>
+                  </label>
+                </div>
+                <div>
+                  <label className="block text-sm">
+                    <span className="text-gray-700 dark:text-gray-400">Recherche</span>
+                    <input
+                      type="text"
+                      name="searchTerm"
+                      value={filters.searchTerm}
+                      onChange={handleFilterChange}
+                      placeholder="Numéro de facture, client..."
+                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                    />
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -165,55 +216,74 @@ const SalesHistory = () => {
                 <table className="w-full whitespace-no-wrap">
                   <thead>
                     <tr className="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
-                      <th className="px-4 py-3">ID</th>
+                      <th className="px-4 py-3">N° Facture</th>
                       <th className="px-4 py-3">Date</th>
                       <th className="px-4 py-3">Client</th>
-                      <th className="px-4 py-3">Articles</th>
                       <th className="px-4 py-3">Total</th>
                       <th className="px-4 py-3">Statut</th>
                       <th className="px-4 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
-                    {sales.map((sale) => (
-                      <tr key={sale.id} className="text-gray-700 dark:text-gray-400">
-                        <td className="px-4 py-3">{sale.id}</td>
-                        <td className="px-4 py-3">
-                          {format(new Date(sale.createdAt), 'Pp', { locale: fr })}
-                        </td>
-                        <td className="px-4 py-3">{sale.customer?.name || 'Client occasionnel'}</td>
-                        <td className="px-4 py-3">{sale.items.length} articles</td>
-                        <td className="px-4 py-3">{sale.total} XOF</td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 font-semibold leading-tight rounded-full ${
-                            sale.status === 'completed'
-                              ? 'text-green-700 bg-green-100 dark:text-green-100 dark:bg-green-700'
-                              : sale.status === 'cancelled'
-                              ? 'text-red-700 bg-red-100 dark:text-red-100 dark:bg-red-700'
-                              : 'text-orange-700 bg-orange-100 dark:text-orange-100 dark:bg-orange-700'
-                          }`}>
-                            {sale.status === 'completed'
-                              ? 'Complétée'
-                              : sale.status === 'cancelled'
-                              ? 'Annulée'
-                              : 'En attente'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center space-x-4">
-                            <button
-                              onClick={() => handlePrintReceipt(sale.id)}
-                              className="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray"
-                              aria-label="Print"
-                            >
-                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0v3H7V4h6zm0 8v4H7v-4h6z"></path>
-                              </svg>
-                            </button>
-                          </div>
+                    {loading ? (
+                      <tr>
+                        <td colSpan="6" className="px-4 py-3 text-center">
+                          Chargement...
                         </td>
                       </tr>
-                    ))}
+                    ) : sales.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="px-4 py-3 text-center">
+                          Aucune vente trouvée
+                        </td>
+                      </tr>
+                    ) : (
+                      sales.map((sale) => (
+                        <tr key={sale.id} className="text-gray-700 dark:text-gray-400">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center text-sm">
+                              {sale.invoiceNumber}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {format(new Date(sale.createdAt), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {sale.customer ? `${sale.customer.firstName} ${sale.customer.lastName}` : 'Client anonyme'}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {sale.total.toLocaleString('fr-FR', { style: 'currency', currency: sale.currency || 'XOF' })}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <span
+                              className={`px-2 py-1 font-semibold leading-tight rounded-full ${sale.status === 'COMPLETED'
+                                  ? 'text-green-700 bg-green-100 dark:bg-green-700 dark:text-green-100'
+                                  : sale.status === 'PENDING'
+                                    ? 'text-orange-700 bg-orange-100 dark:text-white dark:bg-orange-600'
+                                    : 'text-red-700 bg-red-100 dark:text-white dark:bg-red-600'
+                                }`}
+                            >
+                              {sale.status === 'COMPLETED'
+                                ? 'Complétée'
+                                : sale.status === 'PENDING'
+                                  ? 'En attente'
+                                  : 'Annulée'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center space-x-4 text-sm">
+                              <button
+                                onClick={() => handlePrintReceipt(sale.id)}
+                                className="flex items-center justify-center px-3 py-1 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:shadow-outline-blue"
+                              >
+                                <i className="fas fa-print mr-2"></i>
+                                Imprimer reçu
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -221,7 +291,7 @@ const SalesHistory = () => {
               {/* Pagination */}
               <div className="grid px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t dark:border-gray-700 bg-gray-50 sm:grid-cols-9 dark:text-gray-400 dark:bg-gray-800">
                 <span className="flex items-center col-span-3">
-                  Affichage de {sales.length} vente(s)
+                  Page {currentPage} sur {totalPages}
                 </span>
                 <span className="col-span-2"></span>
                 <span className="flex col-span-4 mt-2 sm:mt-auto sm:justify-end">
@@ -229,40 +299,35 @@ const SalesHistory = () => {
                     <ul className="inline-flex items-center">
                       <li>
                         <button
-                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          onClick={() => handlePageChange(currentPage - 1)}
                           disabled={currentPage === 1}
                           className="px-3 py-1 rounded-md rounded-l-lg focus:outline-none focus:shadow-outline-purple"
                           aria-label="Previous"
                         >
-                          <svg className="w-4 h-4 fill-current" aria-hidden="true" viewBox="0 0 20 20">
-                            <path d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" fillRule="evenodd"></path>
-                          </svg>
+                          <i className="fas fa-chevron-left"></i>
                         </button>
                       </li>
-                      {[...Array(totalPages)].map((_, index) => (
-                        <li key={index}>
+                      {[...Array(totalPages)].map((_, i) => (
+                        <li key={i}>
                           <button
-                            onClick={() => setCurrentPage(index + 1)}
-                            className={`px-3 py-1 rounded-md focus:outline-none focus:shadow-outline-purple ${
-                              currentPage === index + 1
-                                ? 'text-white bg-purple-600'
+                            onClick={() => handlePageChange(i + 1)}
+                            className={`px-3 py-1 rounded-md focus:outline-none focus:shadow-outline-purple ${currentPage === i + 1
+                                ? 'text-white transition-colors duration-150 bg-purple-600 border border-r-0 border-purple-600'
                                 : ''
-                            }`}
+                              }`}
                           >
-                            {index + 1}
+                            {i + 1}
                           </button>
                         </li>
                       ))}
                       <li>
                         <button
-                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          onClick={() => handlePageChange(currentPage + 1)}
                           disabled={currentPage === totalPages}
                           className="px-3 py-1 rounded-md rounded-r-lg focus:outline-none focus:shadow-outline-purple"
                           aria-label="Next"
                         >
-                          <svg className="w-4 h-4 fill-current" aria-hidden="true" viewBox="0 0 20 20">
-                            <path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" fillRule="evenodd"></path>
-                          </svg>
+                          <i className="fas fa-chevron-right"></i>
                         </button>
                       </li>
                     </ul>

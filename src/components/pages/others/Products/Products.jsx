@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../../includes/Sidebar";
 import Header from "../../../includes/Header";
 import Footer from "../../../includes/Footer";
 import { useProducts } from "../../../context/ProductContext";
+import { toast } from "react-toastify";
 
 const ProductsManager = () => {
   const {
@@ -20,28 +21,69 @@ const ProductsManager = () => {
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState("product"); 
+  const [modalType, setModalType] = useState("product");
   const [filters, setFilters] = useState({
     category: "all",
     searchTerm: "",
     status: "all",
   });
-
-  const loadData = useCallback(async () => {
-    try {
-      await Promise.all([getProducts(), getCategories()]);
-    } catch (error) {
-      console.error("Error loading data:", error);
-    }
-  }, [getProducts, getCategories]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        await Promise.all([getProducts(), getCategories()]);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      }
+    };
     loadData();
-  }, [loadData]);
+  }, [getProducts, getCategories]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
+    setCurrentPage(1); // Retour à la première page lors d'un changement de filtre
+  };
+
+  const filteredProducts = products.filter((product) => {
+    // Filtre par catégorie
+    if (filters.category !== "all" && product.categoryId !== filters.category) {
+      return false;
+    }
+
+    // Filtre par status
+    if (filters.status !== "all") {
+      const isActive = filters.status === "active";
+      if (product.isActive !== isActive) {
+        return false;
+      }
+    }
+
+    // Filtre par recherche
+    if (filters.searchTerm) {
+      const searchLower = filters.searchTerm.toLowerCase();
+      return (
+        product.name.toLowerCase().includes(searchLower) ||
+        product.description.toLowerCase().includes(searchLower) ||
+        product.sku?.toLowerCase().includes(searchLower) ||
+        product.mainBarcode?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return true;
+  });
+
+  // Calcul des indices pour la pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  // Fonction pour changer de page
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
   const openModal = (type, product = null) => {
@@ -55,49 +97,31 @@ const ProductsManager = () => {
     setSelectedProduct(null);
   };
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = async (productData, categoryData) => {
     try {
-      switch (modalType) {
-        case "product":
-          if (selectedProduct) {
-            await updateProduct(selectedProduct.id, formData);
-          } else {
-            await createProduct(formData);
-          }
-          break;
-        case "variant":
-          await addVariant(selectedProduct.id, formData);
-          break;
-        case "batch":
-          await addBatch(selectedProduct.id, formData.variantId, formData);
-          break;
-        case "category":
-          await createCategory(formData);
-          break;
-        default:
-          break;
+      if (categoryData) {
+        await createCategory(categoryData);
+        await getCategories(); // Rafraîchir les catégories
+      } else {
+        await createProduct(productData);
+        await getProducts(); // Rafraîchir les produits
       }
       closeModal();
-      await loadData();
+      toast.success(categoryData ? 'Catégorie créée avec succès' : 'Produit créé avec succès');
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Erreur:', error);
+      toast.error(error.message);
     }
   };
 
   const handleDelete = async (productId) => {
     try {
       await deleteProduct(productId);
-      await loadData();
+      // await loadData();
     } catch (error) {
       console.error("Error deleting product:", error);
     }
   };
-
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(filters.searchTerm.toLowerCase())
-  );
 
   return (
     <div className={`flex h-screen bg-gray-50 dark:bg-gray-900 ${true ? "overflow-hidden" : ""}`}>
@@ -173,7 +197,6 @@ const ProductsManager = () => {
                 </label>
               </div>
             </div>
-
             {/* Liste des produits */}
             <div className="w-full overflow-hidden rounded-lg shadow-xs">
               <div className="w-full overflow-x-auto">
@@ -184,12 +207,12 @@ const ProductsManager = () => {
                       <th className="px-4 py-3">Catégorie</th>
                       <th className="px-4 py-3">Prix</th>
                       <th className="px-4 py-3">Stock</th>
-                      <th className="px-4 py-3">Variantes</th>
+                      <th className="px-4 py-3">Discount</th>
                       <th className="px-4 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
-                    {filteredProducts.map((product) => (
+                    {currentItems.map((product) => (
                       <tr key={product.id} className="text-gray-700 dark:text-gray-400">
                         <td className="px-4 py-3">
                           <div className="flex items-center text-sm">
@@ -202,16 +225,32 @@ const ProductsManager = () => {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm">
-                          {product.category?.name}
+                          {product.category?.name || 'Non catégorisé'}
                         </td>
                         <td className="px-4 py-3 text-sm">
-                          {product.price} XOF
+                          {product.basePrice} HTG
                         </td>
                         <td className="px-4 py-3 text-sm">
-                          {product.variants?.reduce((total, v) => total + v.stock, 0) || 0}
+                          {product.hasVariants
+                            ? product.variants?.reduce((total, variant) => total + (variant.stock || 0), 0) || 0
+                            : product.trackBatches
+                              ? product.batches?.reduce((total, batch) => total + (batch.quantity || 0), 0) || 0
+                              : product.stock || 0
+                          }
                         </td>
                         <td className="px-4 py-3 text-sm">
-                          {product.variants?.length || 0} variante(s)
+                          {product.discount > 0 ? (
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-green-600">{product.discount} HTG</span>
+                              {product.discountExpiry && (
+                                <span className="text-xs text-gray-500">
+                                  Expire le: {new Date(product.discountExpiry).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-500">Pas de réduction</span>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-4 text-sm">
@@ -250,6 +289,61 @@ const ProductsManager = () => {
                   </tbody>
                 </table>
               </div>
+              {/* Pagination */}
+              <div className="grid px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t dark:border-gray-700 bg-gray-50 sm:grid-cols-9 dark:text-gray-400 dark:bg-gray-800">
+                <span className="flex items-center col-span-3">
+                  Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length}
+                </span>
+                <span className="col-span-2"></span>
+                <span className="flex col-span-4 mt-2 sm:mt-auto sm:justify-end">
+                  <nav aria-label="Table navigation">
+                    <ul className="inline-flex items-center">
+                      <li>
+                        <button
+                          className="px-3 py-1 rounded-md rounded-l-lg focus:outline-none focus:shadow-outline-purple"
+                          aria-label="Previous"
+                          onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                        >
+                          <svg aria-hidden="true" className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                            <path
+                              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                              fillRule="evenodd"
+                            ></path>
+                          </svg>
+                        </button>
+                      </li>
+                      {[...Array(totalPages)].map((_, index) => (
+                        <li key={index}>
+                          <button
+                            className={`px-3 py-1 rounded-md ${
+                              currentPage === index + 1 ? "bg-purple-600 text-white" : ""
+                            }`}
+                            onClick={() => handlePageChange(index + 1)}
+                          >
+                            {index + 1}
+                          </button>
+                        </li>
+                      ))}
+                      <li>
+                        <button
+                          className="px-3 py-1 rounded-md rounded-r-lg focus:outline-none focus:shadow-outline-purple"
+                          aria-label="Next"
+                          onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                        >
+                          <svg className="w-4 h-4 fill-current" aria-hidden="true" viewBox="0 0 20 20">
+                            <path
+                              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                              clipRule="evenodd"
+                              fillRule="evenodd"
+                            ></path>
+                          </svg>
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </span>
+              </div>
             </div>
           </div>
         </main>
@@ -258,194 +352,431 @@ const ProductsManager = () => {
 
       {/* Modal pour l'ajout/modification */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-30 flex items-end bg-black bg-opacity-50 sm:items-center sm:justify-center">
-          <div className="w-full px-6 py-4 overflow-hidden bg-white rounded-t-lg dark:bg-gray-800 sm:rounded-lg sm:m-4 sm:max-w-xl">
-            <header className="flex justify-between">
-              <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
-                {modalType === "product" && (selectedProduct ? "Modifier" : "Nouveau") + " produit"}
-                {modalType === "variant" && "Nouvelle variante"}
-                {modalType === "batch" && "Nouveau lot"}
-                {modalType === "category" && "Nouvelle catégorie"}
-              </h2>
-              <button
-                onClick={closeModal}
-                className="inline-flex items-center justify-center w-6 h-6 text-gray-400 transition-colors duration-150 rounded dark:hover:text-gray-200 hover: hover:text-gray-700"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  ></path>
-                </svg>
-              </button>
-            </header>
+        <div className="fixed inset-0 z-30">
+          <div className="fixed inset-0 bg-black bg-opacity-50"></div>
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-start sm:items-center p-4 sm:p-4">
+              <div className="relative w-full sm:w-4/5 md:w-3/4 lg:w-2/3 max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl">
+                <div className="border-b dark:border-gray-700 px-4 py-2 flex justify-between items-center">
+                  <h2 className="text-base font-medium text-gray-700 dark:text-gray-300">
+                    {modalType === "product" && (selectedProduct ? "Modifier" : "Nouveau") + " produit"}
+                    {modalType === "variant" && "Nouvelle variante"}
+                    {modalType === "batch" && "Nouveau lot"}
+                    {modalType === "category" && "Nouvelle catégorie"}
+                  </h2>
+                  <button
+                    onClick={closeModal}
+                    className="inline-flex items-center justify-center w-8 h-8 text-gray-400 transition-colors duration-150 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
 
-            {/* Formulaire dynamique selon le type */}
-            <div className="mt-4">
-              {/* Formulaire de produit */}
-              {modalType === "product" && (
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.target);
-                  handleSubmit({
-                    name: formData.get("name"),
-                    reference: formData.get("reference"),
-                    description: formData.get("description"),
-                    price: parseFloat(formData.get("price")),
-                    categoryId: formData.get("categoryId"),
-                  });
-                }}>
-                  <label className="block mt-4 text-sm">
-                    <span className="text-gray-700 dark:text-gray-400">Nom</span>
-                    <input
-                      name="name"
-                      defaultValue={selectedProduct?.name}
-                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                    />
-                  </label>
+                {/* Corps du formulaire */}
+                <div className="px-4 py-5 sm:p-6">
+                  {/* Formulaire de produit */}
+                  {modalType === "product" && (
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData();
 
-                  <label className="block mt-4 text-sm">
-                    <span className="text-gray-700 dark:text-gray-400">Référence</span>
-                    <input
-                      name="reference"
-                      defaultValue={selectedProduct?.reference}
-                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                    />
-                  </label>
+                      // Récupérer le fichier image
+                      const imageFile = e.target.image.files[0];
+                      if (!imageFile) {
+                        toast.error('Une image est requise');
+                        return;
+                      }
 
-                  <label className="block mt-4 text-sm">
-                    <span className="text-gray-700 dark:text-gray-400">Description</span>
-                    <textarea
-                      name="description"
-                      defaultValue={selectedProduct?.description}
-                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-textarea"
-                      rows="3"
-                    ></textarea>
-                  </label>
+                      // Ajouter les champs au FormData
+                      formData.append('image', imageFile);
+                      formData.append('name', e.target.name.value);
+                      formData.append('sku', e.target.sku.value);
+                      formData.append('description', e.target.description.value);
+                      formData.append('basePrice', e.target.basePrice.value);
+                      formData.append('stock', e.target.stock.value);
+                      formData.append('categoryId', e.target.categoryId.value);
+                      formData.append('minStockLevel', parseInt(e.target.minStockLevel.value) || 0);
+                      const discountValue = parseFloat(e.target.discount?.value || '0');
+                      formData.append('discount', discountValue || 0);
+                      formData.append('discountExpiry', discountValue > 0 ? e.target.discountExpiry?.value || null : null);
+                      formData.append('mainBarcode', e.target.mainBarcode.value || '');
+                      formData.append('additionalBarcodes', JSON.stringify(e.target.additionalBarcodes?.value?.split(',').map(b => b.trim()) || []));
+                      formData.append('specifications', e.target.specifications?.value || JSON.stringify({}));
+                      formData.append('alertLevel', e.target.alertLevel?.value || 'MEDIUM');
+                      formData.append('quantityPricing', JSON.stringify([]));
+                      formData.append('tags', JSON.stringify(e.target.tags?.value?.split(',').map(t => t.trim()) || []));
 
-                  <label className="block mt-4 text-sm">
-                    <span className="text-gray-700 dark:text-gray-400">Prix</span>
-                    <input
-                      type="number"
-                      name="price"
-                      defaultValue={selectedProduct?.price}
-                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                    />
-                  </label>
+                      handleSubmit(formData);
+                    }}>
+                      <div className="p-4">
+                        {/* Informations de base */}
+                        <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-3">Informations de base</h3>
+                        <div className="flex flex-col sm:flex-row gap-6 items-start">
+                          {/* Image */}
+                          <div className="w-full sm:w-1/4">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Image du produit</span>
+                              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg hover:border-purple-500 dark:hover:border-purple-500 transition-colors cursor-pointer">
+                                <div className="space-y-1 text-center">
+                                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                  <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                                    <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-purple-600 hover:text-purple-500">
+                                      <span>Télécharger un fichier</span>
+                                      <input
+                                        id="file-upload"
+                                        name="image"
+                                        type="file"
+                                        accept="image/*"
+                                        className="sr-only pr-1"
+                                        required
+                                      />
+                                    </label>
+                                  </div>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG jusqu'à 10MB</p>
+                                </div>
+                              </div>
+                            </label>
+                          </div>
 
-                  <label className="block mt-4 text-sm">
-                    <span className="text-gray-700 dark:text-gray-400">Catégorie</span>
-                    <select
-                      name="categoryId"
-                      defaultValue={selectedProduct?.categoryId}
-                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-select"
-                    >
-                      <option value="">Sélectionner une catégorie</option>
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                          {/* Nom */}
+                          <div className="w-full sm:w-1/4">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Nom</span>
+                              <input
+                                type="text"
+                                name="name"
+                                defaultValue={selectedProduct?.name}
+                                placeholder="Nom du produit"
+                                className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                                required
+                              />
+                            </label>
+                          </div>
 
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
-                    >
-                      {selectedProduct ? "Mettre à jour" : "Créer"}
-                    </button>
-                  </div>
-                </form>
-              )}
+                          {/* SKU */}
+                          <div className="w-full sm:w-1/4">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Référence interne (SKU)</span>
+                              <span className="text-xs text-gray-500 ml-1">Code unique</span>
+                              <input
+                                type="text"
+                                name="sku"
+                                defaultValue={selectedProduct?.sku}
+                                placeholder="Ex: CH-BLC-XL-001"
+                                className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                                required
+                              />
+                            </label>
+                          </div>
+                        </div>
 
-              {/* Formulaire de variante */}
-              {modalType === "variant" && (
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.target);
-                  handleSubmit({
-                    name: formData.get("name"),
-                    price: parseFloat(formData.get("price")),
-                    stock: parseInt(formData.get("stock")),
-                  });
-                }}>
-                  <label className="block mt-4 text-sm">
-                    <span className="text-gray-700 dark:text-gray-400">Nom de la variante</span>
-                    <input
-                      name="name"
-                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                    />
-                  </label>
+                        {/* Prix et Stock */}
+                        <div className="flex flex-col sm:flex-row gap-6 mt-4">
+                          {/* Prix de base */}
+                          <div className="w-full sm:w-1/4">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Prix de base</span>
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  name="basePrice"
+                                  min="0"
+                                  step="0.01"
+                                  defaultValue={selectedProduct?.basePrice || 0}
+                                  className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                                  required
+                                />
+                                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 text-sm">HTG</span>
+                              </div>
+                            </label>
+                          </div>
 
-                  <label className="block mt-4 text-sm">
-                    <span className="text-gray-700 dark:text-gray-400">Prix</span>
-                    <input
-                      type="number"
-                      name="price"
-                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                    />
-                  </label>
+                          {/* Stock initial */}
+                          <div className="w-full sm:w-1/4">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Stock initial</span>
+                              <input
+                                type="number"
+                                name="stock"
+                                min="0"
+                                defaultValue={selectedProduct?.stock || 0}
+                                className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                              />
+                            </label>
+                          </div>
 
-                  <label className="block mt-4 text-sm">
-                    <span className="text-gray-700 dark:text-gray-400">Stock initial</span>
-                    <input
-                      type="number"
-                      name="stock"
-                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                    />
-                  </label>
+                          {/* Stock minimum */}
+                          <div className="w-full sm:w-1/4">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Stock minimum</span>
+                              <input
+                                type="number"
+                                name="minStockLevel"
+                                min="0"
+                                defaultValue={selectedProduct?.minStockLevel || 0}
+                                className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                              />
+                            </label>
+                          </div>
+                        </div>
 
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
-                    >
-                      Ajouter
-                    </button>
-                  </div>
-                </form>
-              )}
+                        {/* Remises et Codes-barres */}
 
-              {/* Formulaire de catégorie */}
-              {modalType === "category" && (
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.target);
-                  handleSubmit({
-                    name: formData.get("name"),
-                    description: formData.get("description"),
-                  });
-                }}>
-                  <label className="block mt-4 text-sm">
-                    <span className="text-gray-700 dark:text-gray-400">Nom de la catégorie</span>
-                    <input
-                      name="name"
-                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                    />
-                  </label>
+                        <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-3 mt-8">Remises et Codes-barres</h3>
+                        <div className="flex flex-col sm:flex-row gap-6 items-start">
+                          {/* Remise (%) */}
+                          <div className="w-full sm:w-1/4">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Remise (%)</span>
+                              <input
+                                type="number"
+                                name="discount"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                defaultValue={selectedProduct?.discount || 0}
+                                className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                              />
+                            </label>
+                          </div>
 
-                  <label className="block mt-4 text-sm">
-                    <span className="text-gray-700 dark:text-gray-400">Description</span>
-                    <textarea
-                      name="description"
-                      className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-textarea"
-                      rows="3"
-                    ></textarea>
-                  </label>
+                          {/* Date d'expiration de la remise */}
+                          <div className="w-full sm:w-1/4">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Date d'expiration de la remise</span>
+                              <input
+                                type="datetime-local"
+                                name="discountExpiry"
+                                defaultValue={selectedProduct?.discountExpiry}
+                                className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                              />
+                            </label>
+                          </div>
 
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
-                    >
-                      Créer
-                    </button>
-                  </div>
-                </form>
-              )}
+                          {/* Code-barres principal */}
+                          <div className="w-full sm:w-1/4">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Code-barres principal</span>
+                              <input
+                                type="text"
+                                name="mainBarcode"
+                                defaultValue={selectedProduct?.mainBarcode}
+                                placeholder="Ex: 123456789012"
+                                className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Description et Options */}
+
+                        <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-3 mt-8">Description et Options</h3>
+                        <div className="flex flex-col sm:flex-row gap-6 items-start">
+                          {/* Description du produit */}
+                          <div className="w-full sm:w-1/2">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Description du produit</span>
+                              <textarea
+                                name="description"
+                                defaultValue={selectedProduct?.description}
+                                rows="3"
+                                className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-textarea"
+                                required
+                              ></textarea>
+                            </label>
+                          </div>
+
+                          {/* Catégorie */}
+                          <div className="w-full sm:w-1/4">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Catégorie</span>
+                              <select
+                                name="categoryId"
+                                defaultValue={selectedProduct?.categoryId}
+                                className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-select"
+                              >
+                                <option value="">Sélectionnez une catégorie</option>
+                                {categories.map((cat) => (
+                                  <option key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Tags */}
+                        <div className="flex flex-col sm:flex-row gap-6 mt-8">
+                          <div className="w-full sm:w-1/2">
+                            <label className="block text-sm">
+                              <span className="text-gray-700 dark:text-gray-400">Tags</span>
+                              <span className="text-xs text-gray-500 ml-1">(séparés par des virgules)</span>
+                              <input
+                                type="text"
+                                name="tags"
+                                defaultValue={selectedProduct?.tags?.join(', ')}
+                                placeholder="Ex: promo, nouveau, populaire"
+                                className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 flex justify-end space-x-3 mb-2">
+                        <button
+                          type="button"
+                          onClick={closeModal}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                        >
+                          {selectedProduct ? "Mettre à jour" : "Créer"}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Formulaire de variante */}
+                  {modalType === "variant" && (
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData();
+                      // Ajouter les autres champs
+                      formData.append('name', e.target.name.value);
+                      formData.append('price', e.target.price.value);
+                      formData.append('stock', e.target.stock.value);
+
+                      handleSubmit(formData);
+                    }}>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div>
+                          <label className="block text-sm">
+                            <span className="text-gray-700 dark:text-gray-400">Nom de la variante</span>
+                            <input
+                              type="text"
+                              name="name"
+                              className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                              required
+                            />
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm">
+                            <span className="text-gray-700 dark:text-gray-400">Prix</span>
+                            <input
+                              type="number"
+                              name="price"
+                              step="0.01"
+                              min="0"
+                              className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                              required
+                            />
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm">
+                            <span className="text-gray-700 dark:text-gray-400">Stock initial</span>
+                            <input
+                              type="number"
+                              name="stock"
+                              min="0"
+                              className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                              required
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 flex justify-end space-x-3">
+                        <button
+                          type="button"
+                          onClick={closeModal}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                        >
+                          Ajouter
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Formulaire de catégorie */}
+                  {modalType === "category" && (
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      const categoryData = {
+                        name: e.target.name.value,
+                        description: e.target.description.value
+                      };
+
+                      handleSubmit(null, categoryData);
+                    }}>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div>
+                          <label className="block text-sm">
+                            <span className="text-gray-700 dark:text-gray-400">Nom de la catégorie</span>
+                            <input
+                              type="text"
+                              name="name"
+                              className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                              required
+                            />
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm">
+                            <span className="text-gray-700 dark:text-gray-400">Description</span>
+                            <textarea
+                              name="description"
+                              className="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-textarea"
+                              rows="3"
+                              required
+                            ></textarea>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 flex justify-end space-x-3">
+                        <button
+                          type="button"
+                          onClick={closeModal}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                        >
+                          Créer
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

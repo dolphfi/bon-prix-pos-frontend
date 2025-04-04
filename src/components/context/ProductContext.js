@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { UrlProducts } from '../public/BaseUrls';
+import { UrlCategory } from '../public/BaseUrls';
 import { useAuth } from './AuthContext';
 
 const ProductContext = createContext(null);
@@ -21,10 +22,9 @@ export const ProductProvider = ({ children }) => {
   const [loadingCategories, setLoadingCategories] = useState(false);
 
   // Récupérer tous les produits
-  const getProducts = async (filters = {}) => {
+  const getProducts = useCallback(async (filters = {}) => {
     try {
-      const queryParams = new URLSearchParams(filters).toString();
-      const response = await fetchWithAuth(`${UrlProducts}all-products${queryParams ? `?${queryParams}` : ''}`);
+      const response = await fetchWithAuth(`${UrlProducts}all-products`);
       const data = await response.json();
       setProducts(Array.isArray(data) ? data : []);
       return Array.isArray(data) ? data : [];
@@ -33,13 +33,13 @@ export const ProductProvider = ({ children }) => {
       toast.error('Erreur lors du chargement des produits');
       return [];
     }
-  };
+  }, [fetchWithAuth]);
 
   // Gestion des catégories
-  const getCategories = async () => {
+  const getCategories = useCallback(async () => {
     try {
       setLoadingCategories(true);
-      const response = await fetchWithAuth(`${UrlProducts}categories`);
+      const response = await fetchWithAuth(`${UrlCategory}all-category`);
       const data = await response.json();
       setCategories(Array.isArray(data) ? data : []);
       return data;
@@ -50,14 +50,23 @@ export const ProductProvider = ({ children }) => {
     } finally {
       setLoadingCategories(false);
     }
-  };
+  }, [fetchWithAuth]);
 
   const createCategory = async (categoryData) => {
     try {
-      const response = await fetchWithAuth(`${UrlProducts}categories`, {
+      const response = await fetchWithAuth(`${UrlCategory}add-category`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(categoryData),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erreur lors de la création de la catégorie');
+      }
+
       const data = await response.json();
       await getCategories();
       return data;
@@ -69,7 +78,7 @@ export const ProductProvider = ({ children }) => {
 
   const updateCategory = async (id, categoryData) => {
     try {
-      const response = await fetchWithAuth(`${UrlProducts}categories/${id}`, {
+      const response = await fetchWithAuth(`${UrlCategory}${id}`, {
         method: 'PUT',
         body: JSON.stringify(categoryData),
       });
@@ -84,7 +93,7 @@ export const ProductProvider = ({ children }) => {
 
   const deleteCategory = async (id) => {
     try {
-      await fetchWithAuth(`${UrlProducts}categories/${id}`, {
+      await fetchWithAuth(`${UrlCategory}${id}`, {
         method: 'DELETE',
       });
       await getCategories();
@@ -108,21 +117,59 @@ export const ProductProvider = ({ children }) => {
   };
 
   // Créer un nouveau produit
-  const createProduct = async (productData) => {
+  const createProduct = async (formData) => {
     try {
       setLoading(true);
+
+      // Vérifier que le FormData contient une image
+      const image = formData.get('image');
+      if (!image) {
+        throw new Error('Une image est requise pour le produit');
+      }
+
+      // Extraire et structurer les données du produit
+      const productData = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        basePrice: parseFloat(formData.get('basePrice')),
+        stock: parseInt(formData.get('stock')),
+        categoryId: formData.get('categoryId'),
+        minStockLevel: parseInt(formData.get('minStockLevel')) || 0,
+        sku: formData.get('sku'),
+        mainBarcode: formData.get('mainBarcode') || '',
+        specifications: formData.get('specifications') ? JSON.parse(formData.get('specifications')) : {},
+        alertLevel: formData.get('alertLevel') || 'MEDIUM',
+        tags: formData.get('tags')?.split(',').map(t => t.trim()) || [],
+        discount: parseFloat(formData.get('discount')) || 0,
+        discountExpiry: parseFloat(formData.get('discount')) > 0 ? formData.get('discountExpiry') : null,
+        isActive: true
+      };
+
+      // Créer un nouveau FormData
+      const newFormData = new FormData();
+      newFormData.append('image', image);
+      Object.keys(productData).forEach(key => {
+        newFormData.append(key, typeof productData[key] === 'object' ?
+          JSON.stringify(productData[key]) : productData[key]);
+      });
+
       const response = await fetchWithAuth(`${UrlProducts}add-products`, {
         method: 'POST',
-        body: JSON.stringify(productData),
+        body: newFormData,
       });
+
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur lors de la création du produit');
+      }
+
       await getProducts(); // Recharger la liste des produits
-      toast.success('Produit créé avec succès');
+      // toast.success('Produit créé avec succès');
       return data;
     } catch (error) {
       console.error('Erreur:', error);
-      toast.error('Erreur lors de la création du produit');
-      return null;
+      toast.error(error.message || 'Erreur lors de la création du produit');
+      throw error; // Propager l'erreur pour la gérer dans le composant
     } finally {
       setLoading(false);
     }
@@ -273,6 +320,9 @@ export const ProductProvider = ({ children }) => {
       addBatch,
       getCategories,
       updateStock,
+      createCategory,
+      updateCategory,
+      deleteCategory,
     }}>
       {children}
     </ProductContext.Provider>
